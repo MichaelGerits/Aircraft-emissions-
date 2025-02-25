@@ -10,5 +10,8 @@
 import pandas as pd # data loading in, reads csv files quickly and easily
 import matplotlib as mpl
 import openap
-AID = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID', 'AC Type'])
-print(AID)
+ECTLR = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID'])
+ACtype = pd.read_csv("Data\Aircraft ID.csv", usecols=[ 'AC Type'])
+print(ACtype)
+
+
