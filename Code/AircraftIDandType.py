@@ -10,8 +10,15 @@
 import pandas as pd # data loading in, reads csv files quickly and easily
 import matplotlib as mpl
 import openap
-ECTLR = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID'])
-ACtype = pd.read_csv("Data\Aircraft ID.csv", usecols=[ 'AC Type'])
-print(ACtype)
+from csv import DictReader
+AircraftID = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID','AC Type'])
+ECTRL = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID'])
+ACType = pd.read_csv("Data\Aircraft ID.csv", usecols=['AC Type'])
+AircraftID_cleaned = AircraftID.drop_duplicates()
+AircraftID_cleaned.to_csv("Data\Aircraft_ID_Cleaned.csv", index=False)
+
+df = pd.read_csv("Data\Aircraft_ID_Cleaned.csv")
+AircraftDictionary = df.set_index(['ECTRL ID'])['AC Type'].to_dict()
 
 
+print(AircraftDictionary)
