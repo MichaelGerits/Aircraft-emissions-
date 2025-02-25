@@ -1,4 +1,4 @@
-Airspace ID,Min Flight Level,Max Flight Level,Sequence Number,Latitude,Longitude
+Route ID,Min Flight Level,Max Flight Level,Sequence Number,Latitude,Longitude
 BGGLFIR,0,999,1,89,-60
 BGGLFIR,0,999,2,87,-60
 BGGLFIR,0,999,3,85,-60
