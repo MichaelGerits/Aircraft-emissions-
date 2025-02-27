@@ -103,5 +103,5 @@ def extract_ECTRLIDSeq(Folder):
     return DB
 ##################################################################################################################################
 
-print(extract_ECTRLIDSeq('Data/test')[-1][238925253].head())
+#print(extract_ECTRLIDSeq('Data/test')[-1]["keys"])
 
