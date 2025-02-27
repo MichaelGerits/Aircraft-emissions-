@@ -28,7 +28,6 @@ from pprint import pprint
 AircraftID = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID','AC Type'])
 ECTRL = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID'])
 ACType = pd.read_csv("Data\Aircraft ID.csv", usecols=['AC Type'])
-AircraftID['AC Type'] = AircraftID['AC Type'].str.lower()
 
 #Setting up the Dictionary between the eurocontrol number and aircraft type.  
 df = pd.read_csv("Data\Aircraft_ID_Cleaned.csv")
