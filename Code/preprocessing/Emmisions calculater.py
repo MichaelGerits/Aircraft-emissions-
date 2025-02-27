@@ -1,4 +1,6 @@
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft 
-from preProcess.py import extract_ECTRLIDSeq
+from preProcess import extract_ECTRLIDSeq
 print(AircraftDictionary_Eurocontrol_and_Aircraft[239423170])
+
+
 
