@@ -18,7 +18,7 @@ from pprint import pprint
 
 #importing the Aircraft ID (the eurocontrol number and the aircraft type)
 #Setting up the Dictionary between the eurocontrol number and aircraft type.  
-df = pd.read_csv("Data\aircraft data\Aircraft ID.csv")
+df = pd.read_csv("Data\planedata\Aircraft ID.csv")
 AircraftDictionary_Eurocontrol_and_Aircraft = df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
 
 #This setups a dictionary with equal planes 
