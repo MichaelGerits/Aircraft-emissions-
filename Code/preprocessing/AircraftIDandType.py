@@ -22,24 +22,19 @@ from openap import (
 )
 from openap import prop
 from pprint import pprint
+
+
+#importing the Aircraft ID (the eurocontrol number and the aircraft type)
 AircraftID = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID','AC Type'])
 ECTRL = pd.read_csv("Data\Aircraft ID.csv", usecols=['ECTRL ID'])
 ACType = pd.read_csv("Data\Aircraft ID.csv", usecols=['AC Type'])
 AircraftID['AC Type'] = AircraftID['AC Type'].str.lower()
 
-#AircraftID_cleaned = AircraftID.drop_duplicates()
-#AircraftID_cleaned.to_csv("Data\Aircraft_ID_Cleaned.csv", index=False)
-
-AircraftTypes = ACType.drop_duplicates()
-#AircraftTypes.to_csv("Data\Aircraft_types.csv", index=False)
-
+#Setting up the Dictionary between the eurocontrol number and aircraft type.  
 df = pd.read_csv("Data\Aircraft_ID_Cleaned.csv")
-AircraftDictionary = df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
+AircraftDictionary_Eurocontrol_and_Aircraft = df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
 
-avaiable_aircraft = prop.available_aircraft()
-
-#print(f"Supports {len(avaiable_aircraft)} aircraft types")
-print(avaiable_aircraft)
+#This setups a dictionary with equal planes 
 aircraft_dict = {
     "A20N": "a20n",
     "A21N": "a21n",
@@ -82,6 +77,5 @@ aircraft_dict = {
     "E75L": "e75l",
     "GLF6": "glf6"
 }
-print(aircraft_dict['GLF6'])
-aircraft = prop.aircraft(aircraft_dict['GLF6'])
-pprint(aircraft)
+
+

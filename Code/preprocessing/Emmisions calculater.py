@@ -1,0 +1,3 @@
+from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft 
+print(AircraftDictionary_Eurocontrol_and_Aircraft[239423170])
+
