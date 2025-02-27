@@ -105,3 +105,7 @@ def extract_ECTRLIDSeq(Folder):
 
 print(extract_ECTRLIDSeq('Data/PositionData/January')[238925251])
 
+
+
+
+
