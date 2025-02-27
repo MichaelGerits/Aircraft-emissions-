@@ -1,0 +1,1 @@
+This file serves as a guide for naming datafiles such that they can not be confused and that corresponding flightpoint files and plane data files 

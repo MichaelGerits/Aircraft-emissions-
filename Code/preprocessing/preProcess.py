@@ -56,17 +56,17 @@ def extract_routeIDSeq(Folder):
 
 def extract_ECTRLIDSeq(Folder):
     '''
-    This file loads all the documents in the "Data" folder into a dictionary structure to be used in other files
-    the dictionary allows to organise the snippets of the full data with the original file
+   this function will load all the files in a folder 
+   (make sure to go as far down as possible)
+    then it creates a database for that last folder
+
 
 
     result:
 
     DB:
-        List[
         ->dictionary per data file:
             {name: ....
-             full_dat: ....
              (ectrl_id 1): .....
              (ectrl_id 2): .....
              .
@@ -74,19 +74,19 @@ def extract_ECTRLIDSeq(Folder):
              .
              "keys": ["ectrl_id 1", "ectrl_id 2", ....]
              }
-            ]
+            
     '''
     
     print("\n\n---------------------------------------------------------------")
-    DB = np.array([])
+    if not os.path.exists(Folder):
+        print("Invalid Directory, please check spelling or \,/")
+        quit()
+    DB = {"name": Folder.split("/")[-1]}
     # iterate over files in
     # that directory
     for filename in os.listdir(Folder):
         print(f'Extracting: {filename}')
         dat = pandas.read_csv(os.path.join(Folder, filename))
-
-        #adds filename and data to database
-        DB = np.append(DB,{"name": filename, "full_data": dat})
 
         #find the rows where a new flight begins
         dat['group'] = (dat['Sequence Number'] == 0).cumsum()
@@ -96,12 +96,12 @@ def extract_ECTRLIDSeq(Folder):
 
         # Display the split DataFrames
         for flight in split_dfs:
-            DB[-1].update({int(flight['ECTRL ID'][0]): flight})
-        DB[-1].update({"keys": list(DB[-1].keys())[2:]})
+            DB.update({int(flight['ECTRL ID'][0]): flight})
+    DB.update({"keys": list(DB.keys())[2:]})
 
     print("\n\n-----------Done!!-----------")
     return DB
 ##################################################################################################################################
 
-#print(extract_ECTRLIDSeq('Data/flights')[-1]["keys"])
+print(extract_ECTRLIDSeq('Data/PositionData/January')[238925251])
 
