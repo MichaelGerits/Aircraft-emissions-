@@ -103,7 +103,7 @@ def extract_ECTRLIDSeq(Folder):
     return DB
 ##################################################################################################################################
 
-print(extract_ECTRLIDSeq('Data/PositionData/January')[238925251])
+print(extract_ECTRLIDSeq('Data/PositionData/March')["keys"])
 
 
 
