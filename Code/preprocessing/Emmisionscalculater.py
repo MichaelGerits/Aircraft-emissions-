@@ -12,8 +12,8 @@ from haversine import haversine
 import tracemalloc
 import matplotlib.pyplot as plt
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
-
-PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[238925266]
+EuroControlID=238925271
+PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[EuroControlID]
 print(PlaneType)
 m_A320=181840     #in kg 
 fuelflow = FuelFlow(ac=PlaneType)  #imports the specific flow for the type of aircraft
@@ -31,7 +31,7 @@ CO = emission.co(FF, tas=TAS, alt=ALT)  # g/s
 HC = emission.hc(FF, tas=TAS, alt=ALT)  # g/s
 
 
-df=extract_ECTRLIDSeq('Data/PositionData/March')[238925266]
+df=extract_ECTRLIDSeq('Data/PositionData/March')[EuroControlID]  #imports the data
 seq=df["Sequence Number"]
 Time=df["Time Over"]
 Lattitude=df["Latitude"]
@@ -42,14 +42,16 @@ minutes=[]
 Lat=[]
 Long=[]
 FL=[]
+
+
 for row in Time: 
-    hours.append(int(row[9:10]))
-    minutes.append(int(row[11:13]))
-Lat.extend(Lattitude.astype(float).tolist())
-Long.extend(Longitude.astype(float).tolist()),
-FL.extend(FlightLevel.astype(float).tolist()),
-
-
+    hours.append(int(row[-5:-3]))
+    minutes.append(int(row[-2:]))
+Lat.extend(Lattitude.astype(float).tolist())  #makes a float list of lat
+Long.extend(Longitude.astype(float).tolist()), #makes a float list of long
+FL.extend(FlightLevel.astype(float).tolist()), # 
+print(Time)
+print(hours)
 delta=0
 TimeStamp=[]
 Ttot=0
