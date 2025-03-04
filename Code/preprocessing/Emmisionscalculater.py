@@ -12,7 +12,7 @@ from haversine import haversine
 import tracemalloc
 import matplotlib.pyplot as plt
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
-EuroControlID=238925271
+EuroControlID=238925267
 PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[EuroControlID]
 print(PlaneType)
 m_A320=181840     #in kg 
