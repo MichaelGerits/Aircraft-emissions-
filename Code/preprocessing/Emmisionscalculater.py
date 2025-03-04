@@ -117,10 +117,10 @@ for i in range(len(seq)-2):
     NOxEmmission.append(emission.nox(FF, tas=HorSpeeds[i], alt=FLTot[i]))  # g/s
     COEmmission.append(emission.co(FF, tas=HorSpeeds[i], alt=FLTot[i]))  # g/s
 for i in range(len(CO2Emmission)-1):
-    TotalCO2Emmission=TotalCO2Emmission+abs(Delta[i]*(CO2Emmission[i+1]-CO2Emmission[i])/2)*60 # g
-    TotalH2OEmmission=TotalH2OEmmission+abs(Delta[i]*(H2OEmmission[i+1]-H2OEmmission[i])/2)*60# g
-    TotalNOxEmmission=TotalNOxEmmission+abs(Delta[i]*(NOxEmmission[i+1]-NOxEmmission[i])/2)*60# g
-    TotalCOEmmission=TotalCOEmmission+abs(Delta[i]*(COEmmission[i+1]-COEmmission[i])/2) *60# g
+    TotalCO2Emmission=TotalCO2Emmission+abs(Delta[i]*(CO2Emmission[i+1]+CO2Emmission[i])/2)*60 # g
+    TotalH2OEmmission=TotalH2OEmmission+abs(Delta[i]*(H2OEmmission[i+1]+H2OEmmission[i])/2)*60# g
+    TotalNOxEmmission=TotalNOxEmmission+abs(Delta[i]*(NOxEmmission[i+1]+NOxEmmission[i])/2)*60# g
+    TotalCOEmmission=TotalCOEmmission+abs(Delta[i]*(COEmmission[i+1]+COEmmission[i])/2) *60# g
 
 print("Total CO2 emmisions [kg]=", TotalCO2Emmission/1000)
 print("Total H2O emmisions [kg]=", TotalH2OEmmission/1000)
