@@ -104,7 +104,7 @@ def extract_ECTRLIDSeq(Folder):
     return DB
 ##################################################################################################################################
 
-print(len(extract_ECTRLIDSeq('Data/PositionData/March')["keys"]))
+#print(extract_ECTRLIDSeq('Data/PositionData/March')["keys"])
 
 
 
