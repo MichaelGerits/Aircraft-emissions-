@@ -90,7 +90,6 @@ def extract_ECTRLIDSeq(Folder):
 
         #find the rows where a new flight begins
         dat['group'] = (dat['Sequence Number'] == 0).cumsum()
-        print(dat["group"])
 
         # Split into multiple DataFrames
         split_dfs = [group.drop(columns=['group']).reset_index(drop=True) for _, group in dat.groupby('group')]
