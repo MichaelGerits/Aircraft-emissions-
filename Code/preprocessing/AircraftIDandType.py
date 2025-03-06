@@ -65,4 +65,35 @@ aircraft_dict = {
     "GLF6": "glf6"
 }
 
+#This setups a dictionary with the masses of airplanes 
+aircraft_dict_mass = {
+    "a20n": 70000,
+    "a21n": 84000,
+    "a318": 62000,
+    "a319": 72000,
+    "a320": 80000,
+    "a321": 90000,
+    "a332": 200000,  # A310 and A306 also map to a332, but only one key can exist
+    "a333": 220000,  # A339 also maps to a333
+    "a343": 300000,  # A343 and A346 both map to a343
+    "a359": 220000,  # A35K and A359 both map to a359
+    "a388": 560000,
+    "b734": 70000,  # B733, B734, and B735 all map to b734
+    "b737": 70000,  # B736 also maps to b737
+    "b738": 80000,
+    "b744": 390000,  # B743 and B744 both map to b744
+    "b748": 440000,
+    "b752": 59000,
+    "b763": 90000,
+    "b772": 200000,
+    "b77w": 280000,  # B77L and B77W both map to b77w
+    "b788": 230000,  # B78X and B788 both map to b788
+    "b789": 240000,
+    "c550": 6000,
+    "e170": 30000,
+    "e190": 50000,
+    "e195": 50000,  # E195 and E290 both map to e195
+    "e75l": 35000,
+    "glf6": 45000
+}
 
