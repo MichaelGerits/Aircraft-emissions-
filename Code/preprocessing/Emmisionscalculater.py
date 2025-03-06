@@ -1,4 +1,3 @@
-
 import pandas as pd
 from preProcess import extract_ECTRLIDSeq
 from openap import FuelFlow, Emission
@@ -12,6 +11,7 @@ from haversine import haversine
 import tracemalloc
 import matplotlib.pyplot as plt
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
+
 EuroControlID=238925267
 PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[EuroControlID]
 print(PlaneType)
