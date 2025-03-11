@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
 from AircraftIDandType import aircraft_dict_mass
 from AircraftIDandType import aircraft_dict
-import airportsdata
+from AirportClassifier import AirportDicto
 
 
 
