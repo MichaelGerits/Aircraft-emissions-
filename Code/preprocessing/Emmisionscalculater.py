@@ -127,43 +127,43 @@ print("Total HOx emmisions [kg]=", TotalNOxEmmission/1000)
 print("Total CO emmisions [kg]=", TotalCOEmmission/1000)
 print("Total fuel spent=",TotalFuel)
 
-#plt.subplot(221)
-#plt.scatter(Ttot, FLTot, marker=".", color='green', lw=0)
-#plt.ylabel("altitude (ft)")
+plt.subplot(221)
+plt.scatter(Ttot, FLTot, marker=".", color='green', lw=0)
+plt.ylabel("altitude (ft)")
 
-#plt.subplot(222)
-#plt.scatter(Ttot, HorSpeeds, marker=".",color='blue', lw=0)
-#plt.ylabel("speed (m/s)")
+plt.subplot(222)
+plt.scatter(Ttot, HorSpeeds, marker=".",color='blue', lw=0)
+plt.ylabel("speed (m/s)")
 
-#plt.subplot(223)
-#plt.scatter(Ttot, VerSpeeds, marker=".",color='red', lw=0)
-#plt.ylabel("roc (fpm)")
+plt.subplot(223)
+plt.scatter(Ttot, VerSpeeds, marker=".",color='red', lw=0)
+plt.ylabel("roc (fpm)")
 
-#plt.subplot(224)
-#plt.scatter(Ttot, FuelFlow1, marker=".",color='black', lw=0)
-#plt.ylabel("FuelFlow (kg/s)")
+plt.subplot(224)
+plt.scatter(Ttot, FuelFlow1, marker=".",color='black', lw=0)
+plt.ylabel("FuelFlow (kg/s)")
 
-#plt.show()
-
-
-#plt.subplot(221)
-#plt.plot(Ttot, CO2Emmission,marker=".", color='green',linestyle='-', lw=2)
-#plt.ylabel("CO2Emmission (g/s)")
-
-#plt.subplot(222)
-#plt.plot(Ttot, H2OEmmission, marker=".",color='blue',linestyle='-', lw=2)
-#plt.ylabel("H2OEmmission (g/s)")
-
-#plt.subplot(223)
-#plt.plot(Ttot, NOxEmmission, marker=".",color='red',linestyle='-', lw=2)
-#plt.ylabel("NOxEmmission (g/s)")
-
-#plt.subplot(224)
-#plt.plot(Ttot, COEmmission, marker=".",color='black',linestyle='-', lw=2)
-#plt.ylabel("COEmmission (g/s)")
+plt.show()
 
 
-#plt.show()
+plt.subplot(221)
+plt.plot(Ttot, CO2Emmission,marker=".", color='green',linestyle='-', lw=2)
+plt.ylabel("CO2Emmission (g/s)")
+
+plt.subplot(222)
+plt.plot(Ttot, H2OEmmission, marker=".",color='blue',linestyle='-', lw=2)
+plt.ylabel("H2OEmmission (g/s)")
+
+plt.subplot(223)
+plt.plot(Ttot, NOxEmmission, marker=".",color='red',linestyle='-', lw=2)
+plt.ylabel("NOxEmmission (g/s)")
+
+plt.subplot(224)
+plt.plot(Ttot, COEmmission, marker=".",color='black',linestyle='-', lw=2)
+plt.ylabel("COEmmission (g/s)")
+
+
+plt.show()
 
 
 
