@@ -13,6 +13,9 @@ import matplotlib.pyplot as plt
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
 from AircraftIDandType import aircraft_dict_mass
 from AircraftIDandType import aircraft_dict
+import airportsdata
+
+
 
 EuroControlID=238927688
 PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[EuroControlID] #defines the planetype that will be used 
@@ -123,79 +126,45 @@ print("Total H2O emmisions [kg]=", TotalH2OEmmission/1000)
 print("Total HOx emmisions [kg]=", TotalNOxEmmission/1000)
 print("Total CO emmisions [kg]=", TotalCOEmmission/1000)
 print("Total fuel spent=",TotalFuel)
+airports = airportsdata.load('lat') 
+print(airports['28.64555'])
+#plt.subplot(221)
+#plt.scatter(Ttot, FLTot, marker=".", color='green', lw=0)
+#plt.ylabel("altitude (ft)")
 
+#plt.subplot(222)
+#plt.scatter(Ttot, HorSpeeds, marker=".",color='blue', lw=0)
+#plt.ylabel("speed (m/s)")
 
-plt.subplot(221)
-plt.scatter(Ttot, FLTot, marker=".", color='green', lw=0)
-plt.ylabel("altitude (ft)")
+#plt.subplot(223)
+#plt.scatter(Ttot, VerSpeeds, marker=".",color='red', lw=0)
+#plt.ylabel("roc (fpm)")
 
-plt.subplot(222)
-plt.scatter(Ttot, HorSpeeds, marker=".",color='blue', lw=0)
-plt.ylabel("speed (m/s)")
-
-plt.subplot(223)
-plt.scatter(Ttot, VerSpeeds, marker=".",color='red', lw=0)
-plt.ylabel("roc (fpm)")
-
-plt.subplot(224)
-plt.scatter(Ttot, FuelFlow1, marker=".",color='black', lw=0)
-plt.ylabel("FuelFlow (kg/s)")
-
-plt.show()
-
-
-plt.subplot(221)
-plt.plot(Ttot, CO2Emmission,marker=".", color='green',linestyle='-', lw=2)
-plt.ylabel("CO2Emmission (g/s)")
-
-plt.subplot(222)
-plt.plot(Ttot, H2OEmmission, marker=".",color='blue',linestyle='-', lw=2)
-plt.ylabel("H2OEmmission (g/s)")
-
-plt.subplot(223)
-plt.plot(Ttot, NOxEmmission, marker=".",color='red',linestyle='-', lw=2)
-plt.ylabel("NOxEmmission (g/s)")
-
-plt.subplot(224)
-plt.plot(Ttot, COEmmission, marker=".",color='black',linestyle='-', lw=2)
-plt.ylabel("COEmmission (g/s)")
-
-
-plt.show()
-
-
-
-
-# Convert latitude and longitude to radians
-#lat_rad = np.radians(Lat)
-#lon_rad = np.radians(Long)
-
-# Assume a unit sphere (radius = 1)
-#radius = 1
-
-# Convert to Cartesian coordinates
-#x = radius * np.cos(lat_rad) * np.cos(lon_rad)
-#y = radius * np.cos(lat_rad) * np.sin(lon_rad)
-#z = radius * np.sin(lat_rad)
-
-# Create a 3D plot
-#fig = plt.figure()
-#ax = fig.add_subplot(111, projection='3d')
-
-# Plot points on the sphere
-#ax.scatter(x, y, z, c='b', marker='o')
-
-# Draw the sphere for reference
-#u, v = np.mgrid[0:2 * np.pi:100j, 0:np.pi:50j]
-#xs = np.cos(u) * np.sin(v)
-#ys = np.sin(u) * np.sin(v)
-#zs = np.cos(v)
-#ax.plot_wireframe(xs, ys, zs, color='lightgray', alpha=0.5)
-
-# Set labels and aspect
-#ax.set_xlabel('X Axis')
-#ax.set_ylabel('Y Axis')
-#ax.set_zlabel('Z Axis')
-#ax.set_box_aspect([1,1,1])  # Equal aspect ratio
+#plt.subplot(224)
+#plt.scatter(Ttot, FuelFlow1, marker=".",color='black', lw=0)
+#plt.ylabel("FuelFlow (kg/s)")
 
 #plt.show()
+
+
+#plt.subplot(221)
+#plt.plot(Ttot, CO2Emmission,marker=".", color='green',linestyle='-', lw=2)
+#plt.ylabel("CO2Emmission (g/s)")
+
+#plt.subplot(222)
+#plt.plot(Ttot, H2OEmmission, marker=".",color='blue',linestyle='-', lw=2)
+#plt.ylabel("H2OEmmission (g/s)")
+
+#plt.subplot(223)
+#plt.plot(Ttot, NOxEmmission, marker=".",color='red',linestyle='-', lw=2)
+#plt.ylabel("NOxEmmission (g/s)")
+
+#plt.subplot(224)
+#plt.plot(Ttot, COEmmission, marker=".",color='black',linestyle='-', lw=2)
+#plt.ylabel("COEmmission (g/s)")
+
+
+#plt.show()
+
+
+
