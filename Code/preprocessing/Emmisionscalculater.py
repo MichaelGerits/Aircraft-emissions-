@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from openap.phase import FlightPhase
-#from haversine import haversine
 import tracemalloc
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
 #Load the data for al the required flights once
@@ -25,11 +24,12 @@ class Flight:
 
         """
         #TODO: calculate mass based on id
+        self.CO2, self.H2O, self.NOx, self.HC, self.CO = [None] * 5
         self.ID = EURCTRLID
         self.type = AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]
         self.mass = mass
         self.fuelFlow = FuelFlow(ac=self.type)
-        self.specEmission = Emission(ac=self.type)
+        self.emission = Emission(ac=self.type)
         #get the data for the flight
         self.flightData = Data[self.ID]
 
@@ -39,13 +39,22 @@ class Flight:
         ############### this is the order of steps###############################
         self.time_diffs = self.calcTimeDiffs()
         self.DistHor = self.calcDistHorizontal()
-        self.DistVert = self.calcDistVertical
+        self.DistVert = self.calcDistVertical()
 
         self.spdHor = self.calcDistHorizontal()
         self.spdVert = self.calcSpdVertical()
 
         self.FF = self.initializeFF()
+        
+        rate = self.calcCO2Rate()
+        rates = [func() for func in [self.calcCO2Rate, self.calcH2ORate, self.calcNOxRate, self.calcCORate, self.calcHCRate]]
+        print(rates)
+        
 
+        quit()
+        #for var, rate in zip([self.CO2          , self.H2O          , self.NOx          , self.CO          , self.HC], 
+        #                     [self.calcCO2Rate(), self.calcH2ORate(), self.calcNOxRate(), self.calcCORate(), self.calcHCRate()]):
+        #    var = self.integrateRate(rate=rate)
         
         ############################################################################
 
@@ -119,37 +128,48 @@ class Flight:
         """
         returns an array with the emission rate
         """
-        CO2rate = np.array([Emission.co2(FF) 
+        CO2rate = np.array([self.emission.co2(FF) 
                           for FF in self.FF])
         return CO2rate
     def calcH2ORate(self):
         """
         returns an array with the emission rate
         """
-        H2Orate = np.array([Emission.h2o(FF) 
+        H2Orate = np.array([self.emission.h2o(FF) 
                           for FF in self.FF])
         return H2Orate
     def calcNOxRate(self):
         """
         returns an array with the emission rate
         """
-        NOxrate = np.array([Emission.nox(FF, tas=spdHor, alt=alt) 
-                          for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
+        NOxrate = np.array([self.emission.nox(FF) 
+                          for FF in self.FF])
         return NOxrate
     def calcCORate(self):
         """
         returns an array with the emission rate
         """
-        COrate = np.array([Emission.co(FF, tas=spdHor, alt=alt) 
+        COrate = np.array([self.emission.co(FF, tas=spdHor, alt=alt) 
                           for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return COrate
     def calcHCRate(self):
         """
         returns an array with the emission rate
         """
-        HCrate = np.array([Emission.hc(FF, tas=spdHor, alt=alt) 
+        HCrate = np.array([self.emission.hc(FF, tas=spdHor, alt=alt) 
                           for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return HCrate
+    def integrateRate(self, rate, init=0):
+        """
+        a wrapper for integrating the rates, different methods of integrations can be added here
+        the integration will be done in tons
+        """
+        arr = np.zeros(len(rate))  # Same size as velocity
+
+        # Compute trapezoidal integration step by step
+        for i in range(1, len(rate)):  # Start from 1 since first position is 0
+            arr[i] = arr[i-1] + 0.5 * (rate[i-1] + rate[i]) * self.time_diffs[i-1]
+        return arr
 
 
 
@@ -157,7 +177,7 @@ class Flight:
 
 test = Flight(238927688, 340000)
 
-print(test.calcTimeDiffs(), test.calcDistVertical(), test.calcSpdVertical(), test.type)
+print(test.CO2)
 #EuroControlID=238927688
 #PlaneType=AircraftDictionary_Eurocontrol_and_Aircraft[EuroControlID] #defines the planetype that will be used 
 #print(PlaneType)   
