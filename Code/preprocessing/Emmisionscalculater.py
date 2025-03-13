@@ -23,7 +23,6 @@ EuControl=[]
 EuControl.extend(EuroControlID.astype(float).tolist())
 EuroControlID=list(dict.fromkeys(EuControl))
 length=len(EuroControlID)
-print(length)
 progress=0
 
 for i in EuroControlID:
@@ -118,13 +117,14 @@ for i in EuroControlID:
             VerSpeeds.append(VerticalSpeed)
             HorizontalSpeed=HorSpeedCalc(Delta[i],Dis)
             HorSpeeds.append(HorizontalSpeed)
-            FF = fuelflow.enroute(mass=m_A320, tas=HorSpeeds[i], alt=FL[i]*100, vs=VerSpeeds[i])
+            FF = abs(fuelflow.enroute(mass=m_A320, tas=HorSpeeds[i], alt=FL[i]*100, vs=VerSpeeds[i]))
             TotalFuel=TotalFuel+FF*Delta[i]*60
             FuelFlow1.append(FF)
             CO2Emmission.append(emission.co2(FF))  # g/s
             H2OEmmission.append(emission.h2o(FF))  # g/s
             NOxEmmission.append(emission.nox(FF, tas=HorSpeeds[i], alt=FL[i]*100))  # g/s
             COEmmission.append(emission.co(FF, tas=HorSpeeds[i], alt=FL[i]*100))  # g/s
+
 
 
 
@@ -136,14 +136,18 @@ for i in EuroControlID:
 
         print("Total CO2 emmisions [kg]=", TotalCO2Emmission/1000)
         print("Total H2O emmisions [kg]=", TotalH2OEmmission/1000)
-        print("Total HOx emmisions [kg]=", TotalNOxEmmission/1000)
+        print("Total NOx emmisions [kg]=", TotalNOxEmmission/1000)
         print("Total CO emmisions [kg]=", TotalCOEmmission/1000)
         print("Total fuel spent=",TotalFuel)
-
-        print("The plane took of from", AirportDicto[round(Long[0],1)] ,"and landed in",AirportDicto[round(Long[-1],1)])
+        long0=round(Long[0],2)
+        long1=round(Long[-1],2)
+        lat0=round(Lat[0],2)
+        lat1=round(Lat[-1],2)
+    try:
+        print("The plane took of from", AirportDicto[lat0] ,"and landed in",AirportDicto[lat1])
+    except KeyError:
+        continue
         
-            
-
 
 
     #plt.subplot(221)
@@ -183,6 +187,8 @@ for i in EuroControlID:
 
 
     #plt.show()
+
+
 
 
 
