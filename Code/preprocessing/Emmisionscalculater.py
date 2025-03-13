@@ -45,13 +45,13 @@ class Flight:
         self.spdVert = self.calcSpdVertical()
 
         self.FF = self.initializeFF()
-        
-        rate = self.calcCO2Rate()
+        print(self.FF)
+
         rates = [func() for func in [self.calcCO2Rate, self.calcH2ORate, self.calcNOxRate, self.calcCORate, self.calcHCRate]]
         print(rates)
+        quit()
         
 
-        quit()
         #for var, rate in zip([self.CO2          , self.H2O          , self.NOx          , self.CO          , self.HC], 
         #                     [self.calcCO2Rate(), self.calcH2ORate(), self.calcNOxRate(), self.calcCORate(), self.calcHCRate()]):
         #    var = self.integrateRate(rate=rate)
@@ -142,8 +142,8 @@ class Flight:
         """
         returns an array with the emission rate
         """
-        NOxrate = np.array([self.emission.nox(FF) 
-                          for FF in self.FF])
+        NOxrate = np.array([self.emission.nox(FF, tas=spdHor, alt=alt) 
+                          for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return NOxrate
     def calcCORate(self):
         """
