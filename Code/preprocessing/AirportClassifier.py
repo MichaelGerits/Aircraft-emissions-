@@ -11,15 +11,7 @@ LongitudeAirportlist=[]
 Name_of_Airportlist=[]
 LattitudeAirportlist=[]
 ID=[]
-#+abs(LatAirport[i]*10**number)
-for i in range(28256):
-    number=len(str(LongitudeAirport[i]))
-    LongitudeAirportlist.append((LongitudeAirport[i]))
-    Name_of_Airportlist.append(Name_of_Airport[i])
-    LattitudeAirportlist.append((LatAirport[i],LongitudeAirport[i]))
 
-coordinates = {} # initializes an empty dictionary
-n = 2
 Aiport_Classifier = {}
 for i in range(28256):
     key = LongitudeAirport[i]

@@ -7,7 +7,7 @@ import numpy as np
 from openap.phase import FlightPhase
 import tracemalloc
 from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
-from AirportClassifier import Code\preprocessing\AirportClassifier.py
+
 #Load the data for al the required flights once
 Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
