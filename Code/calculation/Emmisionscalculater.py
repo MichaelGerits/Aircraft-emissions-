@@ -1,12 +1,22 @@
 import pandas as pd
-from preProcess import extract_ECTRLIDSeq
+import os
 from openap import FuelFlow, Emission
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from openap.phase import FlightPhase
 import tracemalloc
-from AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
+import sys
+
+#adds the Code directory to the path for modules
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+#custom modules
+from preprocessing import AirportClassifier, preProcess, AircraftIDandType
+from preprocessing.preProcess import extract_ECTRLIDSeq
+from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
+
+
 #Load the data for al the required flights once
 Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
