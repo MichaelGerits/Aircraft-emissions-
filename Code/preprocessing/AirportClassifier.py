@@ -17,18 +17,15 @@ for i in range(28256):
     LongitudeAirportlist.append((LongitudeAirport[i]))
     Name_of_Airportlist.append(Name_of_Airport[i])
     LattitudeAirportlist.append((LatAirport[i],LongitudeAirport[i]))
-    #ID.append(round(0.5*(LongitudeAirport[i]+LatAirport[i])*(LongitudeAirport[i]+LatAirport[i]+1)-LatAirport[i],4))
-
-#AirportDicto=dict(zip([(LongitudeAirport,LattitudeAirportlist)], Name_of_Airportlist))
 
 coordinates = {} # initializes an empty dictionary
 n = 2
-d = {}
+Aiport_Classifier = {}
 for i in range(28256):
     key = LongitudeAirport[i]
     key1=LatAirport[i]
     value = Name_of_Airport[i]
-    d.update({(key,key1): value})
-print(d)
+    Aiport_Classifier.update({(key,key1): value})
+print(Aiport_Classifier)
 
-print(d[140.0, -6.0])
+print(Aiport_Classifier[140.0, -6.0])
