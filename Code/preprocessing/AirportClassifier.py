@@ -4,8 +4,8 @@ import numpy as np
 
 df = pd.read_csv("Data\Airports\AirportsLongLat.csv")
 
-LongitudeAirport=round(df["lon"],2)
-LatAirport=round(df["lat"],2)
+LongitudeAirport=round(df["lon"],0)
+LatAirport=round(df["lat"],0)
 Name_of_Airport=df["city"]
 LongitudeAirportlist=[]
 Name_of_Airportlist=[]
@@ -21,3 +21,14 @@ for i in range(28256):
 
 #AirportDicto=dict(zip([(LongitudeAirport,LattitudeAirportlist)], Name_of_Airportlist))
 
+coordinates = {} # initializes an empty dictionary
+n = 2
+d = {}
+for i in range(28256):
+    key = LongitudeAirport[i]
+    key1=LatAirport[i]
+    value = Name_of_Airport[i]
+    d.update({(key,key1): value})
+print(d)
+
+print(d[140.0, -6.0])
