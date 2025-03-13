@@ -9,7 +9,7 @@ Name_of_Airport=df["city"]
 LongitudeAirportlist=[]
 Name_of_Airportlist=[]
 
-
+print(LongitudeAirport)
 for i in range(28256):
     LongitudeAirportlist.append(LongitudeAirport[i])
     Name_of_Airportlist.append(Name_of_Airport[i])
@@ -17,4 +17,3 @@ for i in range(28256):
 
 AirportDicto=dict(zip(LongitudeAirportlist, Name_of_Airportlist))
 
-print(AirportDicto[-3.6])
