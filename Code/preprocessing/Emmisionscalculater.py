@@ -20,8 +20,6 @@ class Flight:
         """
         this initialises certain variables and takes the data relevant to this flight. 
         also drops rows/cleans data
-
-
         """
         #TODO: calculate mass based on id
         self.CO2, self.H2O, self.NOx, self.HC, self.CO = [None] * 5
@@ -38,16 +36,17 @@ class Flight:
         self.flightData = self.flightData.drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
         ############### this is the order of steps###############################
-        self.time_diffs = self.calcTimeDiffs()
-        self.time_cum = np.cumsum(self.time_diffs)
+
+        self.time_diffs = self.calcTimeDiffs() #list of time steps
+        self.time_cum = np.cumsum(self.time_diffs) #list of total time passed
         self.DistHor = self.calcDistHorizontal() #distance steps
-        self.alts = np.array(self.flightData['Flight Level'])*100
-        self.DistVert = self.calcDistVertical()
+        self.alts = np.array(self.flightData['Flight Level'])*100 #gets the altitudes from  FL
+        self.DistVert = self.calcDistVertical() #calculates the vertical steps
 
-        self.spdHor = self.calcSpdHorizontal()
-        self.spdVert = self.calcSpdVertical()
+        self.spdHor = self.calcSpdHorizontal() #returns the horizontal velocities
+        self.spdVert = self.calcSpdVertical() #returns the vertical climbrates
 
-        self.FF = self.initializeFF()
+        self.FF = self.initializeFF() #returns the fuelflows for all points
 
 
         #--------------------------------------------------------------------------------------------------------------------------------------
@@ -133,6 +132,7 @@ class Flight:
         FFArr = np.abs(np.array([self.fuelFlow.enroute(mass=self.mass, tas=spdHor, alt=alt, vs=spdVert) 
                           for spdHor, alt, spdVert in zip(self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100, self.spdVert)]))
         return FFArr
+    
     def calcCO2Rate(self):
         """
         returns an array with the emission rate
@@ -140,6 +140,7 @@ class Flight:
         CO2rate = np.array([self.emission.co2(FF) 
                           for FF in self.FF])
         return CO2rate
+    
     def calcH2ORate(self):
         """
         returns an array with the emission rate
@@ -147,6 +148,7 @@ class Flight:
         H2Orate = np.array([self.emission.h2o(FF) 
                           for FF in self.FF])
         return H2Orate
+    
     def calcNOxRate(self):
         """
         returns an array with the emission rate
@@ -154,6 +156,7 @@ class Flight:
         NOxrate = np.array([self.emission.nox(FF, tas=spdHor, alt=alt) 
                           for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return NOxrate
+    
     def calcCORate(self):
         """
         returns an array with the emission rate
@@ -161,6 +164,7 @@ class Flight:
         COrate = np.array([self.emission.co(FF, tas=spdHor, alt=alt) 
                           for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return COrate
+    
     def calcHCRate(self):
         """
         returns an array with the emission rate
@@ -168,6 +172,7 @@ class Flight:
         HCrate = np.array([self.emission.hc(FF, tas=spdHor, alt=alt) 
                           for FF, spdHor, alt in zip(self.FF, self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100)])
         return HCrate
+    
     def integrateRate(self, rate, init=0):
         """
         a wrapper for integrating the rates, different methods of integrations can be added here
