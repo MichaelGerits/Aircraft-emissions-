@@ -39,17 +39,19 @@ class Flight:
         ############### this is the order of steps###############################
         self.time_diffs = self.calcTimeDiffs()
         self.DistHor = self.calcDistHorizontal()
+        self.alts = np.array(self.flightData['Flight Level'])*100
         self.DistVert = self.calcDistVertical()
 
         self.spdHor = self.calcDistHorizontal()
         self.spdVert = self.calcSpdVertical()
 
         self.FF = self.initializeFF()
-        print(self.FF)
+
+        print(self.FF, self.alts, self.spdHor)
+        quit()
 
         rates = [func() for func in [self.calcCO2Rate, self.calcH2ORate, self.calcNOxRate, self.calcCORate, self.calcHCRate]]
-        print(rates)
-        quit()
+        print("\n",rates)
         
 
         #for var, rate in zip([self.CO2          , self.H2O          , self.NOx          , self.CO          , self.HC], 
@@ -64,7 +66,7 @@ class Flight:
 
         returns the array AND updates the class variable
         """
-        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over']).diff().dt.total_seconds().dropna())
+        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M").diff().dt.total_seconds().dropna())
         return time_diffs
     
     def calcDistHorizontal(self, R = 6371000):
@@ -96,7 +98,7 @@ class Flight:
         """
         calculates the distance steps vertically using the recorded flightlevels (ft)
         """
-        DistVert = np.array((self.flightData['Flight Level'] * 100).diff().dropna())
+        DistVert = np.diff(self.alts)
         return DistVert
     
     def calcSpdHorizontal(self):
@@ -121,8 +123,8 @@ class Flight:
         """
         initializes an array of fuel flow objects for each datapoint
         """
-        FFArr = np.array([self.fuelFlow.enroute(mass=self.mass, tas=spdHor, alt=alt, vs=spdVert) 
-                          for spdHor, alt, spdVert in zip(self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100, self.spdVert)])
+        FFArr = np.abs(np.array([self.fuelFlow.enroute(mass=self.mass, tas=spdHor, alt=alt, vs=spdVert) 
+                          for spdHor, alt, spdVert in zip(self.spdHor, np.array(self.flightData['Flight Level'])[1:]*100, self.spdVert)]))
         return FFArr
     def calcCO2Rate(self):
         """
@@ -175,7 +177,7 @@ class Flight:
 
 ############################################################################################################################################################
 
-test = Flight(238927688, 340000)
+test = Flight(238925251, 340000)
 
 print(test.CO2)
 #EuroControlID=238927688
