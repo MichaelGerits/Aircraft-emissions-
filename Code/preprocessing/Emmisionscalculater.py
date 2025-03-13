@@ -1,6 +1,6 @@
 import pandas as pd
 from preProcess import extract_ECTRLIDSeq
-from openap import FuelFlow, Emission
+from openap import FuelFlow, Emission, Mass
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -105,6 +105,7 @@ for i in range(len(seq)-2):
     VerSpeeds.append(VerticalSpeed)
     HorizontalSpeed=HorSpeedCalc(Delta[i],Dis)
     HorSpeeds.append(HorizontalSpeed)
+    #mass = mass.from_range(actype,distance)
     FF = fuelflow.enroute(mass=m_A320, tas=HorSpeeds[i], alt=FL[i]*100, vs=VerSpeeds[i])
     TotalFuel=TotalFuel+FF*Delta[i]*60
     FuelFlow1.append(FF)
