@@ -11,6 +11,7 @@ from openap import (
     FlightGenerator,
     FuelFlow,
     Emission,
+    prop
 )
 from openap import prop
 from pprint import pprint
@@ -69,6 +70,7 @@ aircraft_dict = {
 }
 
 #This setups a dictionary with the masses of airplanes 
+
 aircraft_dict_mass = {
     "a20n": 70000,
     "a21n": 84000,
@@ -100,3 +102,40 @@ aircraft_dict_mass = {
     "glf6": 45000
 }
 
+for i in openap.prop.available_aircraft():
+    aircraft = prop.aircraft(i)
+    pprint(aircraft["mtow"])
+
+aircraft_mass_data = {
+    "format": ["ZFW", "MTOW", "MAX RANGE"],
+    "a20n": [],
+    "a21n": [],
+    "a318": [],
+    "a319": [],
+    "a320": [],
+    "a321": [],
+    "a332": [],  # A310 and A306 also map to a332, but only one key can exist
+    "a333": [],  # A339 also maps to a333
+    "a343": [],  # A343 and A346 both map to a343
+    "a359": [],  # A35K and A359 both map to a359
+    "a388": [],
+    "b734": [],  # B733, B734, and B735 all map to b734
+    "b737": [],  # B736 also maps to b737
+    "b738": [],
+    "b744": [],  # B743 and B744 both map to b744
+    "b748": [],
+    "b752": [],
+    "b763": [],
+    "b772": [],
+    "b77w": [],  # B77L and B77W both map to b77w
+    "b788": [],  # B78X and B788 both map to b788
+    "b789": [],
+    "c550": [],
+    "e170": [],
+    "e190": [],
+    "e195": [],  # E195 and E290 both map to e195
+    "e75l": [],
+    "glf6": []
+}
+
+        
