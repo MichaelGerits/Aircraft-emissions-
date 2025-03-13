@@ -48,6 +48,7 @@ class Flight:
         self.FF = self.initializeFF()
 
         print(self.FF, self.alts, self.spdHor)
+        print(len(self.FF), len(self.alts), len(self.spdHor))
         quit()
 
         rates = [func() for func in [self.calcCO2Rate, self.calcH2ORate, self.calcNOxRate, self.calcCORate, self.calcHCRate]]
