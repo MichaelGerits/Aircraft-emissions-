@@ -97,7 +97,7 @@ def extract_ECTRLIDSeq(Folder):
         # Display the split DataFrames
         for flight in split_dfs:
             DB.update({int(flight['ECTRL ID'][0]): flight})
-    DB.update({"keys": list(DB.keys())[2:]})
+    DB.update({"keys": list(DB.keys())[1:]})
 
     print("\n\n-----------Done!!-----------")
     return DB

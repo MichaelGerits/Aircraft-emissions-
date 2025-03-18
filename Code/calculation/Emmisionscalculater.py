@@ -14,34 +14,46 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 #custom modules
 from preprocessing import AirportClassifier, preProcess, AircraftIDandType
 from preprocessing.preProcess import extract_ECTRLIDSeq
-from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
+from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
 from preprocessing.AircraftIDandType import aircraft_mass_data 
-from preprocessing.AircraftIDandType import avaible_aircraft
 
 
 
 #Load the data for al the required flights once
 Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
+print("--------------------removing invalid aircraft types---------------------")
+print(f"old dataset length: {len(Data)}")
+# gets a list with eurocontrol id's with that invalid type
+invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
+#delete flights with that type from data. to increase speed
+for ID in invalid_ID:
+    if ID in Data["keys"]:
+        Data["keys"].remove(ID)
+        Data.pop(ID, None)
+print(f"new dataset length: {len(Data)}")
+print("--------------------done---------------------")
 
-#print(Data["keys"], len(Data))
-
-#Make a class for a flight
-#TODO: link the aircraft type to the mass at a later point in time
 
 #############################################################################################################################################################
+#Make a class for a flight
 class Flight:
     def __init__(self, EURCTRLID):
         """
         this initialises certain variables and takes the data relevant to this flight. 
         also drops rows/cleans data
         """
-        #TODO: calculate mass based on id
         self.CO2, self.H2O, self.NOx, self.HC, self.CO = [None] * 5
         self.CO2rate, self.H2Orate, self.NOxrate, self.HCrate, self.COrate = [None] * 5
         self.ID = EURCTRLID
+
+        #this if statement catches aircraft types that are not supported by the extended library for openAP
+        type_raw = AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]
+        if  type_raw not in list(aircraft_dict.keys()):
+            raise ValueError(f"Aircraft: {AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]}, not supported")
+        
         self.type = aircraft_dict[AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]]
         self.mass = aircraft_mass_data[self.type]
         self.fuelFlow = FuelFlow(ac=self.type)
@@ -315,10 +327,25 @@ class Flight:
 #test.Findairports()
 #test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 #test.plotGlobe()
-print(avaible_aircraft)
-for i in Data["keys"]:
-    test = Flight(i)
-    test.Findairports()
-    print(i)
-    for j in aircraft_dict:
-        if j== AircraftDictionary_Eurocontrol_and_Aircraft[i]
+
+#-------------------------------------------------------------------------------------------
+flights = []
+print("--------------------initializing flights---------------------")
+for id in Data["keys"]:
+    '''
+    Gets a list with all the valid flights
+    -eliminates invalid types
+    -other eliminations
+    '''
+    try:
+        print(f"initializing flight: {id}")
+        obj = Flight(id)
+        flights.append(obj)  # Only adds if successful
+    except ValueError as error:
+        print(error)  # Handles the error and continues
+print("--------------------done---------------------")
+#--------------------------------------------------------------------------------------------
+for fl in flights:
+    fl.Findairports()
+    print(fl.ID)
+
