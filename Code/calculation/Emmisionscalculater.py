@@ -16,6 +16,8 @@ from preprocessing import AirportClassifier, preProcess, AircraftIDandType
 from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
 from preprocessing.AirportClassifier import Aiport_Classifier
+from preprocessing.AircraftIDandType import aircraft_dict 
+from preprocessing.AircraftIDandType import aircraft_mass_data 
 
 #Load the data for al the required flights once
 Data = extract_ECTRLIDSeq('Data/PositionData/March')
@@ -35,8 +37,8 @@ class Flight:
         self.CO2, self.H2O, self.NOx, self.HC, self.CO = [None] * 5
         self.CO2rate, self.H2Orate, self.NOxrate, self.HCrate, self.COrate = [None] * 5
         self.ID = EURCTRLID
-        self.type = AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]
-        self.mass = mass
+        self.type = aircraft_dict[AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]]
+        self.mass = aircraft_mass_data[self.type]
         self.fuelFlow = FuelFlow(ac=self.type)
         self.emission = Emission(ac=self.type)
         #get the data for the flight
@@ -46,7 +48,7 @@ class Flight:
         self.flightData = self.flightData.drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
         ############### this is the order of steps###############################
-        self.airports = self.Findairports() #find the airports
+        self.airports = self.Findairports(init=True) #find the airports
         self.time_diffs = self.calcTimeDiffs() #list of time steps
         self.time_cum = np.cumsum(self.time_diffs) #list of total time passed
         self.DistHor = self.calcDistHorizontal() #distance steps
@@ -290,23 +292,22 @@ class Flight:
         plt.show()
 
 
-    def Findairports(self):
+    def Findairports(self, init=False):
         try:
             lat_deg=np.round(np.array(self.flightData['Latitude']),0)
             lon_deg=np.round(np.array(self.flightData['Longitude']),0)
+            if init==False:
+                print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
             return (1,1)
-            print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             pass
         
 ############################################################################################################################################################
 
-test = Flight(238925387, 340000)
+test = Flight(238925253, 340000)
 test.Findairports()
-test2 = Flight(238925378, 340000)
-
 test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 test.plotGlobe()
-test2.plotGlobe()
-test.Findairports()
+
+pd.read

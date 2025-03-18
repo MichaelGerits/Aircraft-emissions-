@@ -1,9 +1,7 @@
 
 import pandas as pd
 import numpy as np
-
 df = pd.read_csv("Data\Airports\AirportsLongLat.csv")
-
 LongitudeAirport=round(df["lon"],0)
 LatAirport=round(df["lat"],0)
 Name_of_Airport=df["city"]
