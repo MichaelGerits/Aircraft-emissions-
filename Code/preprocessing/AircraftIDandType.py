@@ -102,9 +102,9 @@ aircraft_dict_mass = {
     "glf6": 45000
 }
 
-for i in openap.prop.available_aircraft():
-    aircraft = prop.aircraft(i)
-    pprint(aircraft["mtow"])
+#for i in openap.prop.available_aircraft():
+    #aircraft = prop.aircraft(i)
+    #pprint(aircraft["mtow"])
 
 aircraft_mass_data = {
     "format": ["ZFW", "MTOW", "MAX RANGE"],
