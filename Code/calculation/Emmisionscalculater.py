@@ -18,9 +18,9 @@ from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_A
 
 
 #Load the data for al the required flights once
-Data = extract_ECTRLIDSeq('Data/PositionData/FPA202006')
+Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
-print(Data["keys"], len(Data))
+print(len(Data)-1)
 
 #Make a class for a flight
 #TODO: link the aircraft type to the mass at a later point in time
@@ -291,6 +291,6 @@ class Flight:
         plt.show()
 ############################################################################################################################################################
 
-test = Flight(239675736, 340000)
+test = Flight(239185903, 340000)
 test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 test.plotGlobe()
