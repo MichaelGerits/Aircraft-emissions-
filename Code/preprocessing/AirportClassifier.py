@@ -18,6 +18,4 @@ for i in range(28256):
     key1=LatAirport[i]
     value = Name_of_Airport[i]
     Aiport_Classifier.update({(key,key1): value})
-print(Aiport_Classifier)
 
-print(Aiport_Classifier[140.0, -6.0])

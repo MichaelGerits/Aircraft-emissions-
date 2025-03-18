@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from preprocessing import AirportClassifier, preProcess, AircraftIDandType
 from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
-
+from preprocessing.AirportClassifier import Aiport_Classifier
 
 #Load the data for al the required flights once
 Data = extract_ECTRLIDSeq('Data/PositionData/March')
@@ -46,7 +46,7 @@ class Flight:
         self.flightData = self.flightData.drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
         ############### this is the order of steps###############################
-
+        self.airports = self.Findairports() #find the airports
         self.time_diffs = self.calcTimeDiffs() #list of time steps
         self.time_cum = np.cumsum(self.time_diffs) #list of total time passed
         self.DistHor = self.calcDistHorizontal() #distance steps
@@ -288,8 +288,25 @@ class Flight:
         ax.set_zlabel('Z Axis')
         ax.set_box_aspect([1,1,1])  # Equal aspect ratio
         plt.show()
+
+
+    def Findairports(self):
+        try:
+            lat_deg=np.round(np.array(self.flightData['Latitude']),0)
+            lon_deg=np.round(np.array(self.flightData['Longitude']),0)
+            return (1,1)
+            print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
+            #imports the airports using the coordinates from depature and arrival
+        except KeyError:
+            pass
+        
 ############################################################################################################################################################
 
-test = Flight(238925251, 340000)
+test = Flight(238925387, 340000)
+test.Findairports()
+test2 = Flight(238925378, 340000)
+
 test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 test.plotGlobe()
+test2.plotGlobe()
+test.Findairports()
