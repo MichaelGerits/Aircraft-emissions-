@@ -294,3 +294,4 @@ class Flight:
 test = Flight(239675736, 340000)
 test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 test.plotGlobe()
+
