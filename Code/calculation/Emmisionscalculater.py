@@ -306,6 +306,9 @@ class Flight:
         
 ############################################################################################################################################################
 
-test = Flight(238925251, 340000)
+test = Flight(238925253, 340000)
+test.Findairports()
 test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 test.plotGlobe()
+
+pd.read
