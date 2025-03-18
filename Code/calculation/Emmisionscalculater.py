@@ -315,13 +315,13 @@ class Flight:
 #test.Findairports()
 #test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 #test.plotGlobe()
-print(avaible_aircraft)
-for i in Data["keys"]:
-    fisk=0
-    for j in aircraft_dict:
-        if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
-            fisk=1
-    if fisk==1:
-        test = Flight(i)
-        test.Findairports()
-        print(i)
+
+#for i in Data["keys"]:
+   # fisk=0
+   # for j in aircraft_dict:
+   #     if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
+    #        fisk=1
+   # if fisk==1:
+   #     test = Flight(i)
+   #     test.Findairports()
+   #     print(i)
