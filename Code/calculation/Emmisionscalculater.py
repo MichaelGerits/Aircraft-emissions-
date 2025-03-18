@@ -18,18 +18,22 @@ from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_A
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
 from preprocessing.AircraftIDandType import aircraft_mass_data 
+from preprocessing.AircraftIDandType import avaible_aircraft
+
+
 
 #Load the data for al the required flights once
-Data = extract_ECTRLIDSeq('Data/PositionData/FPA202006')
+Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
-print(Data["keys"], len(Data))
+
+#print(Data["keys"], len(Data))
 
 #Make a class for a flight
 #TODO: link the aircraft type to the mass at a later point in time
 
 #############################################################################################################################################################
 class Flight:
-    def __init__(self, EURCTRLID, mass):
+    def __init__(self, EURCTRLID):
         """
         this initialises certain variables and takes the data relevant to this flight. 
         also drops rows/cleans data
@@ -85,7 +89,8 @@ class Flight:
 
         returns the array AND updates the class variable
         """
-        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M:%S").diff().dt.total_seconds().dropna())
+        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format='mixed').diff().dt.total_seconds().dropna())
+        #format="%d/%m/%Y %H:%M"
         return time_diffs
     
     def calcDistHorizontal(self, R = 6371000):
@@ -306,9 +311,14 @@ class Flight:
         
 ############################################################################################################################################################
 
-test = Flight(238925253, 340000)
-test.Findairports()
-test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
-test.plotGlobe()
-
-pd.read
+#test = Flight(238925251)
+#test.Findairports()
+#test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
+#test.plotGlobe()
+print(avaible_aircraft)
+for i in Data["keys"]:
+    test = Flight(i)
+    test.Findairports()
+    print(i)
+    for j in aircraft_dict:
+        if j== AircraftDictionary_Eurocontrol_and_Aircraft[i]
