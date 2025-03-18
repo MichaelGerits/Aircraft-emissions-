@@ -317,8 +317,11 @@ class Flight:
 #test.plotGlobe()
 print(avaible_aircraft)
 for i in Data["keys"]:
-    test = Flight(i)
-    test.Findairports()
-    print(i)
+    fisk=0
     for j in aircraft_dict:
-        if j== AircraftDictionary_Eurocontrol_and_Aircraft[i]
+        if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
+            fisk=1
+    if fisk==1:
+        test = Flight(i)
+        test.Findairports()
+        print(i)

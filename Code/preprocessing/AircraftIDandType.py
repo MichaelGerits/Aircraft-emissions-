@@ -25,7 +25,7 @@ AircraftDictionary_Eurocontrol_and_Aircraft= df.set_index(['ECTRL ID'])[('AC Typ
 aircraft_dict = {
     "A20N": "a20n",
     "A21N": "a20n",
-    "A318": "a318",
+    "A318": "a319",
     "A319": "a319",
     "A320": "a320",
     "A321": "a321",
@@ -50,7 +50,8 @@ aircraft_dict = {
     "B743": "b744",
     "B748": "b748",
     "B752": "b752",
-    "B763": "b752",
+     "B762": "b752",
+    "B763": "b752", 
     "B764": "b752",
     "B767": "b752",
     "B772": "b772",
@@ -61,7 +62,7 @@ aircraft_dict = {
     "B788": "b788",
     "B789": "b789",
     "C510": "c550",
-    "E170": "e170",
+    "E170": "e190",
     "E190": "e190",
     "E195": "e195",
     "E290": "e195",
@@ -138,36 +139,5 @@ for i in openap.prop.available_aircraft():
     aircraft = prop.aircraft(i)
     pprint(aircraft["mtow"])
 
-aircraft_mass_data = {
-    "format": ["ZFW", "MTOW", "MAX RANGE"],
-    "a20n": [mass_list[0]],
-    "a21n": [mass_list[1]],
-    "a318": [mass_list[2]],
-    "a319": [mass_list[3]],
-    "a320": [mass_list[4]],
-    "a321": [mass_list[5]],
-    "a332": [mass_list[6]],  # A310 and A306 also map to a332, but only one key can exist
-    "a333": [mass_list[7]],  # A339 also maps to a333
-    "a343": [mass_list[8]],  # A343 and A346 both map to a343
-    "a359": [mass_list[9]],  # A35K and A359 both map to a359
-    "a388": [mass_list[10]],
-    "b734": [mass_list[11]],  # B733, B734, and B735 all map to b734
-    "b737": [mass_list[12]],  # B736 also maps to b737
-    "b738": [mass_list[13]],
-    "b744": [mass_list[14]],  # B743 and B744 both map to b744
-    "b748": [mass_list[15]],
-    "b752": [mass_list[16]],
-    "b763": [mass_list[17]],
-    "b772": [mass_list[18]],
-    "b77w": [mass_list[19]],  # B77L and B77W both map to b77w
-    "b788": [mass_list[20]],  # B78X and B788 both map to b788
-    "b789": [mass_list[21]],
-    "c550": [mass_list[22]],
-    "e170": [mass_list[23]],
-    "e190": [mass_list[24]],
-    "e195": [mass_list[25]],  # E195 and E290 both map to e195
-    "e75l": [mass_list[26]],
-    "glf6": [mass_list[27]]
-}
 
-avaible_aircraft=['a19n', 'a20n', 'a21n', 'a318', 'a319', 'a320', 'a321', 'a332', 'a333', 'a343', 'a359', 'a388', 'b37m', 'b38m', 'b39m', 'b3xm', 'b734', 'b737', 'b738', 'b739', 'b744', 'b748', 'b752', 'b763', 'b772', 'b773', 'b77w', 'b788', 'b789', 'c550', 'e145', 'e170', 'e190', 'e195', 'e75l', 'glf6']
+#avaible_aircraft=['a19n', 'a20n', 'a21n', 'a318', 'a319', 'a320', 'a321', 'a332', 'a333', 'a343', 'a359', 'a388', 'b37m', 'b38m', 'b39m', 'b3xm', 'b734', 'b737', 'b738', 'b739', 'b744', 'b748', 'b752', 'b763', 'b772', 'b773', 'b77w', 'b788', 'b789', 'c550', 'e145', 'e170', 'e190', 'e195', 'e75l', 'glf6']
