@@ -17,8 +17,8 @@ from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
-from preprocessing.AircraftIDandType import aircraft_mass_data 
-from preprocessing.AircraftIDandType import avaible_aircraft
+from preprocessing.AircraftIDandType import aircraft_dict_mass 
+
 
 
 
@@ -43,7 +43,7 @@ class Flight:
         self.CO2rate, self.H2Orate, self.NOxrate, self.HCrate, self.COrate = [None] * 5
         self.ID = EURCTRLID
         self.type = aircraft_dict[AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]]
-        self.mass = aircraft_mass_data[self.type]
+        self.mass = aircraft_dict_mass[self.type]
         self.fuelFlow = FuelFlow(ac=self.type)
         self.emission = Emission(ac=self.type)
         #get the data for the flight
@@ -308,6 +308,17 @@ class Flight:
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             pass
+    def Haul(self):
+        print(self.DistHor[-1])
+        if self.DistHor[-1] < 1.500:
+            return("Short-haul flight")
+        elif self.DistHor[-1] >= 3000:
+            return("Long-haul flight")
+        else:
+            return("Medium-haul flight")
+        
+ 
+
         
 ############################################################################################################################################################
 
@@ -317,11 +328,12 @@ class Flight:
 #test.plotGlobe()
 
 #for i in Data["keys"]:
-   # fisk=0
-   # for j in aircraft_dict:
-   #     if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
-    #        fisk=1
-   # if fisk==1:
-   #     test = Flight(i)
-   #     test.Findairports()
-   #     print(i)
+   #fisk=0
+   #for j in aircraft_dict:
+    #    if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
+     #      fisk=1
+   #if fisk==1:
+   # test = Flight(i)
+   # test.Findairports()
+   # test.Haul()
+  #  print(i)
