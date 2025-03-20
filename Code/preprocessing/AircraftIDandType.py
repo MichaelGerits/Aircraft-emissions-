@@ -19,7 +19,7 @@ from pprint import pprint
 
 #importing the Aircraft ID (the eurocontrol number and the aircraft type)
 #Setting up the Dictionary between the eurocontrol number and aircraft type.  
-df = pd.read_csv("Data\AircraftData\March\Aircraft ID.csv")
+df = pd.read_csv("Data\AircraftData\March\Aircraft ID.csv") #TODO: fix this to adapt to proper file
 AircraftDictionary_Eurocontrol_and_Aircraft= df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
 #This setups a dictionary with equal planes 
 aircraft_dict = {
@@ -137,7 +137,6 @@ mass_list = [75500,79000,97000, 68000, 75500,
 ]
 for i in openap.prop.available_aircraft():
     aircraft = prop.aircraft(i)
-    pprint(aircraft["mtow"])
 
 
 #avaible_aircraft=['a19n', 'a20n', 'a21n', 'a318', 'a319', 'a320', 'a321', 'a332', 'a333', 'a343', 'a359', 'a388', 'b37m', 'b38m', 'b39m', 'b3xm', 'b734', 'b737', 'b738', 'b739', 'b744', 'b748', 'b752', 'b763', 'b772', 'b773', 'b77w', 'b788', 'b789', 'c550', 'e145', 'e170', 'e190', 'e195', 'e75l', 'glf6']
