@@ -3,6 +3,7 @@ import pandas as pd # data loading in, reads csv files quickly and easily
 import matplotlib as mpl
 import openap
 from csv import DictReader
+import numpy as np
 from openap import (
     Drag,
     Thrust,
@@ -17,11 +18,27 @@ from openap import prop
 from pprint import pprint
 
 
+
 #importing the Aircraft ID (the eurocontrol number and the aircraft type)
 #Setting up the Dictionary between the eurocontrol number and aircraft type.  
-df = pd.read_csv("Data\AircraftData\March\Aircraft ID.csv") #TODO: fix this to adapt to proper file
-AircraftDictionary_Eurocontrol_and_Aircraft= df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
+df = pd.read_csv("Data\AircraftData\Flights_202003.csv")
+df1 = pd.read_csv("Data\AircraftData\Flights_202006.csv")
+df2 = pd.read_csv("Data\AircraftData\Flights_202009.csv")
+df3 = pd.read_csv("Data\AircraftData\Flights_202012.csv")
+s1 = pd.Series(["ECTRL ID"], name="X")
+result = pd.concat([df["ECTRL ID"], df["ECTRL ID"]])
+
+combined_series_ECTRL = pd.concat([df["ECTRL ID"], df1["ECTRL ID"], df2["ECTRL ID"], df3["ECTRL ID"]], ignore_index=True)
+combined_series_Plane = pd.concat([df["AC Type"], df1["AC Type"], df2["AC Type"], df3["AC Type"]], ignore_index=True)
+
+
+
+
+ #TODO: fix this to adapt to proper file
+AircraftDictionary_Eurocontrol_and_Aircraft= dict(zip(combined_series_ECTRL,combined_series_Plane))
+#AircraftDictionary_Eurocontrol_and_Aircraft= df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
 #This setups a dictionary with equal planes 
+
 aircraft_dict = {
     "A20N": "a20n",
     "A21N": "a20n",
@@ -138,5 +155,3 @@ mass_list = [75500,79000,97000, 68000, 75500,
 for i in openap.prop.available_aircraft():
     aircraft = prop.aircraft(i)
 
-
-#avaible_aircraft=['a19n', 'a20n', 'a21n', 'a318', 'a319', 'a320', 'a321', 'a332', 'a333', 'a343', 'a359', 'a388', 'b37m', 'b38m', 'b39m', 'b3xm', 'b734', 'b737', 'b738', 'b739', 'b744', 'b748', 'b752', 'b763', 'b772', 'b773', 'b77w', 'b788', 'b789', 'c550', 'e145', 'e170', 'e190', 'e195', 'e75l', 'glf6']

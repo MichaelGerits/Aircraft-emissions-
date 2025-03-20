@@ -17,9 +17,7 @@ from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
-from preprocessing.AircraftIDandType import aircraft_mass_data 
-from preprocessing.AircraftIDandType import aircraft_dict_mass 
-
+from preprocessing.AircraftIDandType import aircraft_dict_mass
 
 
 
@@ -341,12 +339,24 @@ class Flight:
 #test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
 #test.plotGlobe()
 
-#for i in Data["keys"]:
-   # fisk=0
-   # for j in aircraft_dict:
-   #     if j==AircraftDictionary_Eurocontrol_and_Aircraft[i]:
-    #        fisk=1
-   # if fisk==1:
-   #     test = Flight(i)
-   #     test.Findairports()
-   #     print(i)
+#-------------------------------------------------------------------------------------------
+flights = []
+print("--------------------initializing flights---------------------")
+for id in Data["keys"]:
+    '''
+    Gets a list with all the valid flights
+    -eliminates invalid types
+    -other eliminations
+    '''
+    try:
+        print(f"initializing flight: {id}")
+        obj = Flight(id)
+        flights.append(obj)  # Only adds if successful
+    except ValueError as error:
+        print(error)  # Handles the error and continues
+print("--------------------done---------------------")
+#--------------------------------------------------------------------------------------------
+for fl in flights:
+    fl.Findairports()
+    print(fl.ID)
+
