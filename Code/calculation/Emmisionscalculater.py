@@ -331,19 +331,6 @@ def create_flight(EURCTRLID, Data):
     return flight
         
 
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list = [
-        ["EurocontrolID","Plane", "Dep-Arr","CO2","NOX","Time","Distance"],  
-    ]
-    writer.writerows(row_list)
-test = Flight(238951991,Data)
-test.initialize_emission()
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
-    writer.writerows(row_list)
-
 
 
 ############################################################################################################################################################
@@ -352,7 +339,7 @@ with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/March')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
 
     
     print("--------------------removing invalid aircraft types---------------------")
@@ -371,7 +358,7 @@ if __name__ == "__main__":
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
     flights = []
-    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -387,16 +374,21 @@ if __name__ == "__main__":
     #print(flights[0].time_cum, flights[0].time_diffs)
 
  
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        row_list = [
-            ["Plane", "Dep-Arr","CO2","NOX"],  
-        ]
-        writer.writerows(row_list)
-    test = Flight(238951991)
-    test.plotEmissionData()
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
-        writer.writerows(row_list)
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    row_list = [
+        ["EurocontrolID","Plane", "Dep-Arr","CO2","NOX","Time","Distance"],  
+    ]
+    writer.writerows(row_list)
+    
+
+    test = Flight(238951991,Data)
+    test.initialize_emission()
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    for i in flights:
+        row_list.append([i.ID,i.type,i.Findairports(),i.CO2[-1],i.NOx[-1],i.time_cum[-1],round(np.sum(i.calcDistHorizontal()),0)])
+    writer.writerows(row_list)
+    #row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
+
 
