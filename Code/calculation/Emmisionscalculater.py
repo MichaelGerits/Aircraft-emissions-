@@ -317,6 +317,15 @@ class Flight:
         except KeyError:
             return (None, None)
         
+    def Haul(self):
+        print(self.DistHor[-1])
+        if self.DistHor[-1] < 1.500:
+            return("Short-haul flight")
+        elif self.DistHor[-1] >= 3000:
+            return("Long-haul flight")
+        else:
+            return("Medium-haul flight")
+        
 def create_flight(EURCTRLID, Data):
     """Helper function for multiprocessing to create a Flight object."""
     try:
@@ -330,15 +339,6 @@ def create_flight(EURCTRLID, Data):
         print("issue during computation")
         flight= None
     return flight
-    
-    def Haul(self):
-        print(self.DistHor[-1])
-        if self.DistHor[-1] < 1.500:
-            return("Short-haul flight")
-        elif self.DistHor[-1] >= 3000:
-            return("Long-haul flight")
-        else:
-            return("Medium-haul flight")
         
  
 
