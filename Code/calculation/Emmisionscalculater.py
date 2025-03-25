@@ -7,6 +7,8 @@ import numpy as np
 from openap.phase import FlightPhase
 import tracemalloc
 import sys
+import csv
+
 
 #adds the Code directory to the path for modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -316,7 +318,7 @@ class Flight:
             lon_deg=np.round(np.array(self.flightData['Longitude']),0)
             if init==False:
                 print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return (1,1)
+            return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             pass
@@ -329,7 +331,7 @@ class Flight:
         else:
             return("Medium-haul flight")
         
- 
+
 
         
 ############################################################################################################################################################
@@ -341,6 +343,7 @@ class Flight:
 
 #-------------------------------------------------------------------------------------------
 flights = []
+
 print("--------------------initializing flights---------------------")
 for id in Data["keys"]:
     '''
@@ -359,4 +362,18 @@ print("--------------------done---------------------")
 for fl in flights:
     fl.Findairports()
     print(fl.ID)
+
+ 
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    row_list = [
+        ["Plane", "Dep-Arr","CO2","NOX"],  
+    ]
+    writer.writerows(row_list)
+test = Flight(238951991)
+test.plotEmissionData()
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
+    writer.writerows(row_list)
 
