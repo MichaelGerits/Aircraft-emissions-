@@ -82,10 +82,9 @@ class Flight:
 
         returns the array AND updates the class variable
         """
-        try:
-            time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M").diff().dt.total_seconds().dropna())
-        except:
-            time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M:%S").diff().dt.total_seconds().dropna())
+        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="mixed", dayfirst=True).diff().dt.total_seconds().dropna())
+
+
 
         #format="%d/%m/%Y %H:%M"
         return time_diffs
@@ -305,7 +304,6 @@ class Flight:
                 print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
             return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
             #imports the airports using the coordinates from depature and arrival
-            return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
         except KeyError:
             return (None, None)
         
@@ -346,13 +344,19 @@ if __name__ == "__main__":
     if fil==True:
         print("--------------------removing invalid aircraft types---------------------")
         print(f"    old dataset length: {len(Data)-2}")
-        # gets a list with eurocontrol id's with that invalid type
-        invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
-        #delete flights with that type from data. to increase speed
-        for ID in invalid_ID:
-            if ID in Data["keys"]:
-                Data["keys"].remove(ID)
-                Data.pop(ID, None)
+
+        # Convert aircraft_dict keys to a set for faster lookups
+        valid_types = set(aircraft_dict.keys())
+
+        # Get invalid IDs in a set for fast lookups
+        invalid_IDs = {id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in valid_types}
+
+        # Filter Data["keys"] in one go
+        Data["keys"] = [ID for ID in Data["keys"] if ID not in invalid_IDs]
+
+        # Use dictionary comprehension to remove invalid entries
+        Data = {key: value for key, value in Data.items() if key not in invalid_IDs}
+
         print(f"    new dataset length: {len(Data)-2}")
         print("--------------------done---------------------")
 
@@ -360,7 +364,7 @@ if __name__ == "__main__":
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
     flights = []
-    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -373,9 +377,9 @@ if __name__ == "__main__":
     #print(flights)
 
     flights[0].plotEmissionData(tot=False)
-    #print(flights[0].time_cum, flights[0].time_diffs)
+    print(flights[0].time_cum, flights[0].time_diffs)
 
- 
+    quit()
     with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         row_list = [
