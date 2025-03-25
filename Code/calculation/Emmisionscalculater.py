@@ -377,20 +377,25 @@ if __name__ == "__main__":
     #print(flights)
 
     flights[0].plotEmissionData(tot=False)
-    print(flights[0].time_cum, flights[0].time_diffs)
+    #print(flights[0].time_cum, flights[0].time_diffs)
 
-    quit()
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        row_list = [
-            ["Plane", "Dep-Arr","CO2","NOX"],  
-        ]
-        writer.writerows(row_list)
-    test = Flight(238951991)
+ 
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    row_list = [
+        ["EurocontrolID","Plane", "Dep-Arr","CO2","NOX","Time","Distance"],  
+    ]
+    writer.writerows(row_list)
+    
+
+    test = Flight(238951991,Data)
     test.initialize_emission()
-    test.plotEmissionData()
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
-        writer.writerows(row_list)
+    test.initialize_emission()
+with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    for i in flights:
+        row_list.append([i.ID,i.type,i.Findairports(),i.CO2[-1],i.NOx[-1],i.time_cum[-1],round(np.sum(i.calcDistHorizontal()),0)])
+    writer.writerows(row_list)
+    #row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
+
 
