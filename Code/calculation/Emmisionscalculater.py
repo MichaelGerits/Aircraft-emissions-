@@ -13,8 +13,25 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
 from preprocessing.AirportClassifier import Aiport_Classifier
-from preprocessing.AircraftIDandType import aircraft_dict
-from preprocessing.AircraftIDandType import aircraft_dict_mass 
+from preprocessing.AircraftIDandType import aircraft_dict 
+from preprocessing.AircraftIDandType import aircraft_dict_mass
+
+
+
+#Load the data for al the required flights once
+Data = extract_ECTRLIDSeq('Data/PositionData/March')
+
+print("--------------------removing invalid aircraft types---------------------")
+print(f"old dataset length: {len(Data)}")
+# gets a list with eurocontrol id's with that invalid type
+invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
+#delete flights with that type from data. to increase speed
+for ID in invalid_ID:
+    if ID in Data["keys"]:
+        Data["keys"].remove(ID)
+        Data.pop(ID, None)
+print(f"new dataset length: {len(Data)}")
+print("--------------------done---------------------")
 
 
 #############################################################################################################################################################
@@ -314,6 +331,17 @@ def create_flight(EURCTRLID, Data):
         flight= None
     return flight
     
+    def Haul(self):
+        print(self.DistHor[-1])
+        if self.DistHor[-1] < 1.500:
+            return("Short-haul flight")
+        elif self.DistHor[-1] >= 3000:
+            return("Long-haul flight")
+        else:
+            return("Medium-haul flight")
+        
+ 
+
 
 ############################################################################################################################################################
 
