@@ -344,7 +344,7 @@ if __name__ == "__main__":
     Data = extract_ECTRLIDSeq('Data/PositionData/March')
 
     
-print("--------------------removing invalid aircraft types---------------------")
+    print("--------------------removing invalid aircraft types---------------------")
     print(f"    old dataset length: {len(Data)-2}")
     # gets a list with eurocontrol id's with that invalid type
     invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
@@ -376,16 +376,16 @@ print("--------------------removing invalid aircraft types---------------------"
     #print(flights[0].time_cum, flights[0].time_diffs)
 
  
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list = [
-        ["Plane", "Dep-Arr","CO2","NOX"],  
-    ]
-    writer.writerows(row_list)
-test = Flight(238951991)
-test.plotEmissionData()
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
-    writer.writerows(row_list)
+    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list = [
+            ["Plane", "Dep-Arr","CO2","NOX"],  
+        ]
+        writer.writerows(row_list)
+    test = Flight(238951991)
+    test.plotEmissionData()
+    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
+        writer.writerows(row_list)
 
