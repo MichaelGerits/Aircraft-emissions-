@@ -18,23 +18,6 @@ from preprocessing.AircraftIDandType import aircraft_dict
 from preprocessing.AircraftIDandType import aircraft_dict_mass
 
 
-
-#Load the data for al the required flights once
-Data = extract_ECTRLIDSeq('Data/PositionData/March')
-
-print("--------------------removing invalid aircraft types---------------------")
-print(f"old dataset length: {len(Data)}")
-# gets a list with eurocontrol id's with that invalid type
-invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
-#delete flights with that type from data. to increase speed
-for ID in invalid_ID:
-    if ID in Data["keys"]:
-        Data["keys"].remove(ID)
-        Data.pop(ID, None)
-print(f"new dataset length: {len(Data)}")
-print("--------------------done---------------------")
-
-
 #############################################################################################################################################################
 #Make a class for a flight
 class Flight:
@@ -68,7 +51,7 @@ class Flight:
         # Fuel Flow & Emission objects are NOT initialized here to avoid pickling issues
 
     def initialize_emission(self):
-        """Does the openAP calculations afetr setting up base parameters."""
+        """Does the openAP calculations after setting up base parameters."""
         try:
             self.fuelFlow = FuelFlow(ac=self.type)
             self.emission = Emission(ac=self.type)
@@ -98,7 +81,11 @@ class Flight:
 
         returns the array AND updates the class variable
         """
-        time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format='mixed').diff().dt.total_seconds().dropna())
+        try:
+            time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M").diff().dt.total_seconds().dropna())
+        except:
+            time_diffs = np.array(pd.to_datetime(self.flightData['Time Over'], format="%d/%m/%Y %H:%M:%S").diff().dt.total_seconds().dropna())
+
         #format="%d/%m/%Y %H:%M"
         return time_diffs
     
@@ -205,6 +192,7 @@ class Flight:
         a wrapper for integrating the rates, different methods of integrations can be added here
         the integration will be done in tons
         """
+        rate = np.abs(rate)
         arr = np.zeros(len(rate))  # Same size as velocity
 
         # Compute trapezoidal integration step by step
@@ -382,10 +370,10 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
-    flights = np.array([])
-    for ID in tqdm(Data["keys"][], desc="Initializing objects", unit="flight"):
+    flights = []
+    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
-        np.append(flights,obj)
+        flights.append(obj)
     
 
     # Filter out None values
@@ -393,8 +381,22 @@ if __name__ == "__main__":
 
     print("--------------------done---------------------")
     #--------------------------------------------------------------------------------------------
+    #print(flights)
 
-
-    print(flights)
+    flights[0].plotEmissionData(tot=False)
+    #print(flights[0].time_cum, flights[0].time_diffs)
 
  
+    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list = [
+            ["Plane", "Dep-Arr","CO2","NOX"],  
+        ]
+        writer.writerows(row_list)
+    test = Flight(238951991)
+    test.plotEmissionData()
+    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list.append([AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1]])
+        writer.writerows(row_list)
+
