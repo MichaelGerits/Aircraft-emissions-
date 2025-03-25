@@ -1,2 +1,2 @@
-Installed packages [pip]: pandas, fastmeteo, matplotlib, openap, seaborn, cartopy, multiprocessing, tdqm
+Installed packages [pip]: pandas, fastmeteo, matplotlib, openap, seaborn, cartopy, tdqm
 run: pip install --upgrade git+https://github.com/junzis/openap
