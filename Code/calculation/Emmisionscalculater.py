@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import csv
+
 from tqdm import tqdm
 
 #adds the Code directory to the path for modules
@@ -304,6 +305,7 @@ class Flight:
                 print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
             return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
             #imports the airports using the coordinates from depature and arrival
+            return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
         except KeyError:
             return (None, None)
         
@@ -331,19 +333,6 @@ def create_flight(EURCTRLID, Data):
     return flight
         
 
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list = [
-        ["EurocontrolID","Plane", "Dep-Arr","CO2","NOX","Time","Distance"],  
-    ]
-    writer.writerows(row_list)
-test = Flight(238951991,Data)
-test.initialize_emission()
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
-    writer.writerows(row_list)
-
 
 
 ############################################################################################################################################################
@@ -353,25 +342,25 @@ if __name__ == "__main__":
 
     #Load the data for al the required flights once
     Data = extract_ECTRLIDSeq('Data/PositionData/March')
-
-    
-    print("--------------------removing invalid aircraft types---------------------")
-    print(f"    old dataset length: {len(Data)-2}")
-    # gets a list with eurocontrol id's with that invalid type
-    invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
-    #delete flights with that type from data. to increase speed
-    for ID in invalid_ID:
-        if ID in Data["keys"]:
-            Data["keys"].remove(ID)
-            Data.pop(ID, None)
-    print(f"    new dataset length: {len(Data)-2}")
-    print("--------------------done---------------------")
+    fil=True #decide if you want to go through the filtering process or not
+    if fil==True:
+        print("--------------------removing invalid aircraft types---------------------")
+        print(f"    old dataset length: {len(Data)-2}")
+        # gets a list with eurocontrol id's with that invalid type
+        invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
+        #delete flights with that type from data. to increase speed
+        for ID in invalid_ID:
+            if ID in Data["keys"]:
+                Data["keys"].remove(ID)
+                Data.pop(ID, None)
+        print(f"    new dataset length: {len(Data)-2}")
+        print("--------------------done---------------------")
 
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
     flights = []
-    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -394,6 +383,7 @@ if __name__ == "__main__":
         ]
         writer.writerows(row_list)
     test = Flight(238951991)
+    test.initialize_emission()
     test.plotEmissionData()
     with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
         writer = csv.writer(file)
