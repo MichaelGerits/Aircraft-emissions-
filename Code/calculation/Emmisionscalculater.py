@@ -2,99 +2,78 @@ import pandas as pd
 import os
 from openap import FuelFlow, Emission
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from openap.phase import FlightPhase
-import tracemalloc
 import sys
+from tqdm import tqdm
 
 #adds the Code directory to the path for modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 #custom modules
-from preprocessing import AirportClassifier, preProcess, AircraftIDandType
 from preprocessing.preProcess import extract_ECTRLIDSeq
 from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
 from preprocessing.AirportClassifier import Aiport_Classifier
-from preprocessing.AircraftIDandType import aircraft_dict 
-from preprocessing.AircraftIDandType import aircraft_mass_data 
-
-
-
-#Load the data for al the required flights once
-Data = extract_ECTRLIDSeq('Data/PositionData/March')
-
-print("--------------------removing invalid aircraft types---------------------")
-print(f"old dataset length: {len(Data)}")
-# gets a list with eurocontrol id's with that invalid type
-invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
-#delete flights with that type from data. to increase speed
-for ID in invalid_ID:
-    if ID in Data["keys"]:
-        Data["keys"].remove(ID)
-        Data.pop(ID, None)
-print(f"new dataset length: {len(Data)}")
-print("--------------------done---------------------")
+from preprocessing.AircraftIDandType import aircraft_dict
+from preprocessing.AircraftIDandType import aircraft_dict_mass 
 
 
 #############################################################################################################################################################
 #Make a class for a flight
 class Flight:
-    def __init__(self, EURCTRLID):
-        """
-        this initialises certain variables and takes the data relevant to this flight. 
-        also drops rows/cleans data
-        """
+    def __init__(self, EURCTRLID, Data):
+        """Initialize a Flight object with minimal picklable attributes."""
         self.CO2, self.H2O, self.NOx, self.HC, self.CO = [None] * 5
         self.CO2rate, self.H2Orate, self.NOxrate, self.HCrate, self.COrate = [None] * 5
         self.ID = EURCTRLID
 
-        #this if statement catches aircraft types that are not supported by the extended library for openAP
-        type_raw = AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]
-        if  type_raw not in list(aircraft_dict.keys()):
-            raise ValueError(f"Aircraft: {AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]}, not supported")
-        
-        self.type = aircraft_dict[AircraftDictionary_Eurocontrol_and_Aircraft[EURCTRLID]]
-        self.mass = aircraft_mass_data[self.type]
-        self.fuelFlow = FuelFlow(ac=self.type)
-        self.emission = Emission(ac=self.type)
-        #get the data for the flight
-        self.flightData = Data[self.ID]
+        # Check if aircraft type is supported
+        type_raw = AircraftDictionary_Eurocontrol_and_Aircraft.get(EURCTRLID)
+        if type_raw not in aircraft_dict:
+            raise ValueError(f"Aircraft: {type_raw} not supported")
 
-        #remove rows which have the same datetime (getting rid of duplicates)
-        self.flightData = self.flightData.drop_duplicates(subset=['Time Over']).reset_index(drop=True)
+        self.type = aircraft_dict[type_raw]
+        self.mass = aircraft_dict_mass[self.type]
 
-        ############### this is the order of steps###############################
-        self.airports = self.Findairports(init=True) #find the airports
-        self.time_diffs = self.calcTimeDiffs() #list of time steps
-        self.time_cum = np.cumsum(self.time_diffs) #list of total time passed
-        self.DistHor = self.calcDistHorizontal() #distance steps
-        self.alts = np.array(self.flightData['Flight Level'])*100 #gets the altitudes from  FL
-        self.DistVert = self.calcDistVertical() #calculates the vertical steps
+        # Store flight data
+        self.flightData = Data[self.ID].drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
-        self.spdHor = self.calcSpdHorizontal() #returns the horizontal velocities
-        self.spdVert = self.calcSpdVertical() #returns the vertical climbrates
+        # Compute initial parameters
+        self.airports = self.Findairports(init=True)
+        self.time_diffs = self.calcTimeDiffs()
+        self.time_cum = np.cumsum(self.time_diffs)
+        self.DistHor = self.calcDistHorizontal()
+        self.alts = np.array(self.flightData['Flight Level']) * 100
+        self.DistVert = self.calcDistVertical()
+        self.spdHor = self.calcSpdHorizontal()
+        self.spdVert = self.calcSpdVertical()
 
-        self.FF = self.initializeFF() #returns the fuelflows for all points
+        # Fuel Flow & Emission objects are NOT initialized here to avoid pickling issues
 
+    def initialize_emission(self):
+        """Does the openAP calculations afetr setting up base parameters."""
+        try:
+            self.fuelFlow = FuelFlow(ac=self.type)
+            self.emission = Emission(ac=self.type)
+            self.FF = self.initializeFF()
 
-        #--------------------------------------------------------------------------------------------------------------------------------------
-        self.CO2rate = self.calcCO2Rate() * 1e-6
-        self.H2Orate = self.calcH2ORate() * 1e-6
-        self.NOxrate = self.calcNOxRate() * 1e-6
-        self.COrate = self.calcCORate() * 1e-6
-        self.HCrate = self.calcHCRate() * 1e-6
+            self.CO2rate = self.calcCO2Rate() * 1e-6
+            self.H2Orate = self.calcH2ORate() * 1e-6
+            self.NOxrate = self.calcNOxRate() * 1e-6
+            self.COrate = self.calcCORate() * 1e-6
+            self.HCrate = self.calcHCRate() * 1e-6
 
-        #calculates the total emission in tons
-        self.CO2 = self.integrateRate(rate=self.CO2rate) 
-        self.NOx = self.integrateRate(rate=self.NOxrate) 
-        self.H2O = self.integrateRate(rate=self.H2Orate) 
-        self.CO = self.integrateRate(rate=self.COrate) 
-        self.HC = self.integrateRate(rate=self.HCrate) 
-        
+            self.CO2 = self.integrateRate(rate=self.CO2rate)
+            self.NOx = self.integrateRate(rate=self.NOxrate)
+            self.H2O = self.integrateRate(rate=self.H2Orate)
+            self.CO = self.integrateRate(rate=self.COrate)
+            self.HC = self.integrateRate(rate=self.HCrate) 
+        except RuntimeWarning:
+            print("issue during computation")    
         
         ############################################################################
-
+    def __str__(self):
+        """Defines how the object is printed with key stats."""
+        return f"Flight {self.id} | emissions: {[self.CO2[-1], self.H2O[-1], self.NOx[-1], self.HC[-1], self.CO[-1]]} | Airports: {self.Findairports(init=True)}"
     def calcTimeDiffs(self):
         """
         calculates the timesteps of the flight in seconds
@@ -312,40 +291,65 @@ class Flight:
 
     def Findairports(self, init=False):
         try:
+            #imports the airports using the coordinates from depature and arrival
             lat_deg=np.round(np.array(self.flightData['Latitude']),0)
             lon_deg=np.round(np.array(self.flightData['Longitude']),0)
             if init==False:
                 print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return (1,1)
-            #imports the airports using the coordinates from depature and arrival
+            return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
         except KeyError:
-            pass
+            return (None, None)
         
+def create_flight(EURCTRLID, Data):
+    """Helper function for multiprocessing to create a Flight object."""
+    try:
+        #print("initializing ", EURCTRLID)
+        flight = Flight(EURCTRLID, Data) #initializes the object
+        flight.initialize_emission()  # does the calculation
+    except ValueError as e:
+        print(e)
+        flight = None
+    except RuntimeWarning:
+        print("issue during computation")
+        flight= None
+    return flight
+    
+
 ############################################################################################################################################################
 
-#test = Flight(238925251)
-#test.Findairports()
-#test.plotEmissionData(np.cumsum(test.DistHor), tot=False)
-#test.plotGlobe()
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+if __name__ == "__main__":
 
-#-------------------------------------------------------------------------------------------
-flights = []
-print("--------------------initializing flights---------------------")
-for id in Data["keys"]:
-    '''
-    Gets a list with all the valid flights
-    -eliminates invalid types
-    -other eliminations
-    '''
-    try:
-        print(f"initializing flight: {id}")
-        obj = Flight(id)
-        flights.append(obj)  # Only adds if successful
-    except ValueError as error:
-        print(error)  # Handles the error and continues
-print("--------------------done---------------------")
-#--------------------------------------------------------------------------------------------
-for fl in flights:
-    fl.Findairports()
-    print(fl.ID)
+    #Load the data for al the required flights once
+    Data = extract_ECTRLIDSeq('Data/PositionData/March')
+
+    print("--------------------removing invalid aircraft types---------------------")
+    print(f"    old dataset length: {len(Data)-2}")
+    # gets a list with eurocontrol id's with that invalid type
+    invalid_ID = [id for id, type in AircraftDictionary_Eurocontrol_and_Aircraft.items() if type not in list(aircraft_dict.keys())]
+    #delete flights with that type from data. to increase speed
+    for ID in invalid_ID:
+        if ID in Data["keys"]:
+            Data["keys"].remove(ID)
+            Data.pop(ID, None)
+    print(f"    new dataset length: {len(Data)-2}")
+    print("--------------------done---------------------")
+
+    #---------------------------------------------------------------------------------------------------------------------------------------------------------------
+    print(f"--------------------initializing {len(Data)-2} flights ---------------------")
+
+    flights = np.array([])
+    for ID in tqdm(Data["keys"][1:], desc="Initializing objects", unit="flight"):
+        obj = create_flight(ID, Data)
+        np.append(flights,obj)
+    
+
+    # Filter out None values
+    flights = [f for f in flights if f is not None]
+
+    print("--------------------done---------------------")
+    #--------------------------------------------------------------------------------------------
+
+
+    print(flights)
 

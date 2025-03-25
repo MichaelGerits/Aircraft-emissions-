@@ -79,13 +79,13 @@ def extract_ECTRLIDSeq(Folder):
     
     print("\n\n---------------------------------------------------------------")
     if not os.path.exists(Folder):
-        print("Invalid Directory, please check spelling or \,/")
+        print(" Invalid Directory, please check spelling or \,/")
         quit()
     DB = {"name": Folder.split("/")[-1]}
     # iterate over files in
     # that directory
     for filename in os.listdir(Folder):
-        print(f'Extracting: {filename}')
+        print(f'    Extracting: {filename}')
         dat = pandas.read_csv(os.path.join(Folder, filename))
 
         #find the rows where a new flight begins
