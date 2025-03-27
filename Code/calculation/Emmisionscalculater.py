@@ -328,7 +328,7 @@ def create_flight(EURCTRLID, Data):
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
-        with open('Data\Outputdata\dest.csv', 'a', newline='') as file:
+        with open('Data\Outputdata\dest.csv', 'a', newline='',encoding="utf-8") as file:
             writer = csv.writer(file)
             row_list=[flight.ID,flight.type,flight.Findairports(init=True)[0],flight.Findairports(init=True)[1],flight.Findairports(init=True)[2],flight.Findairports(init=True)[3],flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.calcDistHorizontal()),0),flight.Haul(),np.array(flight.flightData['Time Over'])[0],np.array(flight.flightData['Time Over'])[-1]]
             writer.writerow(row_list)
