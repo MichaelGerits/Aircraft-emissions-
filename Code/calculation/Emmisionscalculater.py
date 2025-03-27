@@ -302,12 +302,12 @@ class Flight:
     def Findairports(self, init=False):
         try:
             #imports the airports using the coordinates from depature and arrival
-            lat_deg=np.round(np.array(self.flightData['Latitude']),0)
-            lon_deg=np.round(np.array(self.flightData['Longitude']),0)
+            lat_deg=np.array(self.flightData['Latitude'])
+            lon_deg=np.array(self.flightData['Longitude'])
             if init==False:
                 fisk=1
                 #print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return [Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            return [Aiport_Classifier[(np.round(lon_deg[0],0),np.round(lat_deg[0],0))],Aiport_Classifier[(np.round(lon_deg[-1],0),np.round(lat_deg[-1],0))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             return [None, None, None, None]
