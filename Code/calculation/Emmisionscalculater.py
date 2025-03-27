@@ -305,14 +305,16 @@ class Flight:
             lat_deg=np.round(np.array(self.flightData['Latitude']),0)
             lon_deg=np.round(np.array(self.flightData['Longitude']),0)
             if init==False:
-                print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return (Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])])
+                fisk=1
+                #print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
+            return [Aiport_Classifier[(lon_deg[0],lat_deg[0])],Aiport_Classifier[(lon_deg[-1],lat_deg[-1])],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
-            return (None, None)
+            return [None, None, None, None]
+        except UnicodeEncodeError:
+            print("fisk")
         
     def Haul(self):
-        print(self.DistHor[-1])
         if self.DistHor[-1] < 1.500:
             return("Short-haul flight")
         elif self.DistHor[-1] >= 3000:
@@ -326,12 +328,19 @@ def create_flight(EURCTRLID, Data):
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
+        with open('Data\Outputdata\dest.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            row_list=[flight.ID,flight.type,flight.Findairports(init=True)[0],flight.Findairports(init=True)[1],flight.Findairports(init=True)[2],flight.Findairports(init=True)[3],flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.calcDistHorizontal()),0),flight.Haul(),np.array(flight.flightData['Time Over'])[0],np.array(flight.flightData['Time Over'])[-1]]
+            writer.writerow(row_list)
+
     except ValueError as e:
         print(e)
         flight = None
     except RuntimeWarning:
         print("issue during computation")
         flight= None
+    
+        
     return flight
         
 
@@ -395,9 +404,18 @@ if __name__ == "__main__":
 
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
+    
+    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list = [
+            ["EurocontrolID","Plane", "Dep","Arr", "Dep(start-coordinates)", "Arr(end-coordinates)","CO2","NOX","Time","Distance","Haul","Start-Date","End-date"],  
+        ]
+        writer.writerows(row_list)
+    
+
 
     flights = []
-    for ID in tqdm(Data["keys"][:30], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -414,22 +432,3 @@ if __name__ == "__main__":
     #print(flights[0].time_cum, flights[0].time_diffs)
 
  
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    row_list = [
-        ["EurocontrolID","Plane", "Dep-Arr","CO2","NOX","Time","Distance"],  
-    ]
-    writer.writerows(row_list)
-    
-
-    test = Flight(238951991,Data)
-    test.initialize_emission()
-    test.initialize_emission()
-with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    for i in flights:
-        row_list.append([i.ID,i.type,i.Findairports(init=True),i.CO2[-1],i.NOx[-1],i.time_cum[-1],round(np.sum(i.calcDistHorizontal()),0)])
-    writer.writerows(row_list)
-    #row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
-
-
