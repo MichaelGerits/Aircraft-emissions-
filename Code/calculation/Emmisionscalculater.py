@@ -376,7 +376,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/March')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
 
 
 
