@@ -21,6 +21,10 @@ from preprocessing.AircraftIDandType import aircraft_dict_mass
 
 #############################################################################################################################################################
 #Make a class for a flight
+
+long_limits = [0,0]
+lar_limits = [0,0]
+
 class Flight:
     def __init__(self, EURCTRLID, Data):
         """Initialize a Flight object with minimal picklable attributes."""
@@ -331,6 +335,30 @@ def create_flight(EURCTRLID, Data):
     return flight
         
 
+def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
+    print("\n--------------------removing flights out of bounds---------------------")
+    print(f"    old dataset length: {len(Data) - 2}")  # Excluding "name" and "keys"
+
+    def is_within_bounds(df):
+        """ Check if first or last coordinates are within bounds """
+        first_lat, first_lon = df.iloc[0][['Latitude', 'Longitude']]
+        last_lat, last_lon = df.iloc[-1][['Latitude', 'Longitude']]
+        
+        return ((min_lat <= first_lat <= max_lat and min_lon <= first_lon <= max_lon) or
+                (min_lat <= last_lat <= max_lat and min_lon <= last_lon <= max_lon))
+
+    # Extract only valid flight IDs, skipping the first and last items ("name" and "keys")
+    flight_entries = list(Data.items())[1:-1]  # Skip first ("name") and last ("keys")
+    valid_flight_ids = {flight_id for flight_id, df in tqdm(flight_entries, desc="eliminating flights", unit="flight") if is_within_bounds(df)}
+    
+    # Update "keys" and filter Data dictionary
+    Data = {key: Data[key] for key in valid_flight_ids}
+    Data["keys"] = list(valid_flight_ids)
+    
+    print(f"    new dataset length: {len(Data)}")  # Now only valid flights
+    print("--------------------done---------------------")
+    
+    return Data
 
 
 ############################################################################################################################################################
@@ -339,10 +367,13 @@ def create_flight(EURCTRLID, Data):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/March')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
+
+
+
     fil=True #decide if you want to go through the filtering process or not
     if fil==True:
-        print("--------------------removing invalid aircraft types---------------------")
+        print("\n--------------------removing invalid aircraft types---------------------")
         print(f"    old dataset length: {len(Data)-2}")
 
         # Convert aircraft_dict keys to a set for faster lookups
@@ -360,11 +391,13 @@ if __name__ == "__main__":
         print(f"    new dataset length: {len(Data)-2}")
         print("--------------------done---------------------")
 
+        Data = filter_flights_by_coordinates(Data=Data, min_lat=37.623, max_lat=69.896, min_lon=-23.723, max_lon=31.823)
+
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
     flights = []
-    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"][:30], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -373,6 +406,7 @@ if __name__ == "__main__":
     flights = [f for f in flights if f is not None]
 
     print("--------------------done---------------------")
+
     #--------------------------------------------------------------------------------------------
     #print(flights)
 
@@ -394,7 +428,7 @@ with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
 with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     for i in flights:
-        row_list.append([i.ID,i.type,i.Findairports(),i.CO2[-1],i.NOx[-1],i.time_cum[-1],round(np.sum(i.calcDistHorizontal()),0)])
+        row_list.append([i.ID,i.type,i.Findairports(init=True),i.CO2[-1],i.NOx[-1],i.time_cum[-1],round(np.sum(i.calcDistHorizontal()),0)])
     writer.writerows(row_list)
     #row_list.append([238951991,AircraftDictionary_Eurocontrol_and_Aircraft[238951991],test.Findairports(),test.CO2[-1],test.NOx[-1],test.time_cum[-1],np.sum(test.calcDistHorizontal())])
 
