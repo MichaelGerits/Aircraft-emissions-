@@ -22,9 +22,6 @@ from preprocessing.AircraftIDandType import aircraft_dict_mass
 #############################################################################################################################################################
 #Make a class for a flight
 
-long_limits = [0,0]
-lar_limits = [0,0]
-
 class Flight:
     def __init__(self, EURCTRLID, Data):
         """Initialize a Flight object with minimal picklable attributes."""
