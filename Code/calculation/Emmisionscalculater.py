@@ -322,12 +322,18 @@ def create_flight(EURCTRLID, Data):
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
+        with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            row_list=[flight.ID,flight.type,flight.Findairports(),flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.DistHor),0)]
+            writer.writerows(row_list)
     except ValueError as e:
         print(e)
         flight = None
     except RuntimeWarning:
         print("issue during computation")
         flight= None
+    
+        
     return flight
         
 
@@ -339,7 +345,7 @@ def create_flight(EURCTRLID, Data):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/March')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202006')
     fil=True #decide if you want to go through the filtering process or not
     if fil==True:
         print("--------------------removing invalid aircraft types---------------------")
@@ -364,7 +370,7 @@ if __name__ == "__main__":
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
 
     flights = []
-    for ID in tqdm(Data["keys"][:5], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -388,9 +394,6 @@ with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
     writer.writerows(row_list)
     
 
-    test = Flight(238951991,Data)
-    test.initialize_emission()
-    test.initialize_emission()
 with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     for i in flights:
