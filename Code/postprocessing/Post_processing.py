@@ -69,8 +69,8 @@ def load_csv(mode):
     df = pd.concat(dfs, ignore_index=True)
 
     # Clean and process the data
-    df['Start-Date'] = pd.to_datetime(df['Start-Date'], errors='coerce')
-    df['End-date'] = pd.to_datetime(df['End-date'], errors='coerce')
+    df['Start-Date'] = pd.to_datetime(df['Start-Date'], errors='coerce', dayfirst=True)
+    df['End-date'] = pd.to_datetime(df['End-date'], errors='coerce', dayfirst=True)
 
     if 'Dep(start-coordinates)' in df.columns:
         df['Dep(start-coordinates)'] = df['Dep(start-coordinates)'].apply(lambda x: ast.literal_eval(x) if pd.notna(x) else [None, None])
@@ -109,21 +109,28 @@ def group_by_aircraft_and_route(df):
 
 def plot_emissions(df, mode, label):
     if mode == 1:
-        df['Month'] = df['Start-Date'].dt.strftime('%b')
+        df['Month'] = df['Start-Date'].dt.month
         monthly = df.groupby('Month')[['CO2']].sum()
-        monthly = monthly.reindex(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
-        monthly.plot(kind='bar', legend=False)
+        monthly = monthly.reindex(range(1, 13))  # Ensure all 12 months in order
+
+        monthly.index = monthly.index.map(lambda x: pd.to_datetime(str(x), format='%m').strftime('%b'))
+
+        monthly.plot(kind='bar', legend=False, color='skyblue')
         plt.title(f"Monthly CO2 Emissions in {label}")
         plt.ylabel("CO2 (kg)")
+        plt.xlabel("Month")
         plt.tight_layout()
         plt.show()
+
     elif mode == 2:
         df['Route'] = df['Dep'] + " → " + df['Arr']
-        route_emissions = df.groupby('Route')[['CO2']].sum().sort_values(by='CO2', ascending=False).head(10)
-        route_emissions.plot(kind='bar', legend=False)
-        plt.title(f"Top 10 Emission Routes in Month {label}")
+        top_routes = df.groupby('Route')[['CO2']].sum().sort_values(by='CO2', ascending=False).head(10)
+
+        top_routes.plot(kind='bar', legend=False, color='salmon')
+        plt.title(f"Top 10 Routes by CO2 in Month {label}")
         plt.ylabel("CO2 (kg)")
+        plt.xlabel("Route")
+        plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
         plt.show()
 
