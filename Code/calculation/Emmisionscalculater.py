@@ -304,7 +304,7 @@ class Flight:
             if init==False:
                 fisk=1
                 #print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return [Aiport_Classifier[(np.round(lon_deg[0],0),np.round(lat_deg[0],0))],Aiport_Classifier[(np.round(lon_deg[-1],0),np.round(lat_deg[-1],0))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            return [Aiport_Classifier[np.round(lon_deg[0],0),np.round(lat_deg[0],0)],Aiport_Classifier[(np.round(lon_deg[-1],0),np.round(lat_deg[-1],0))],[float(lon_deg[0]),float(lat_deg[0])],[float(lon_deg[-1]),float(lat_deg[-1])]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             return [None, None, None, None]
@@ -312,7 +312,7 @@ class Flight:
             print("fisk")
         
     def Haul(self):
-        if self.DistHor[-1] < 1.500:
+        if self.DistHor[-1] < 1500:
             return("Short-haul flight")
         elif self.DistHor[-1] >= 3000:
             return("Long-haul flight")
@@ -373,7 +373,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202012')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
 
 
 
@@ -397,7 +397,7 @@ if __name__ == "__main__":
         print(f"    new dataset length: {len(Data)-2}")
         print("--------------------done---------------------")
 
-        Data = filter_flights_by_coordinates(Data=Data, min_lat=37.623, max_lat=69.896, min_lon=-23.723, max_lon=31.823)
+        #Data = filter_flights_by_coordinates(Data=Data, min_lat=37.623, max_lat=69.896, min_lon=-23.723, max_lon=31.823)
 
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
@@ -412,7 +412,7 @@ if __name__ == "__main__":
 
 
     flights = []
-    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"][:6000], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -425,7 +425,7 @@ if __name__ == "__main__":
     #--------------------------------------------------------------------------------------------
     #print(flights)
 
-    flights[0].plotEmissionData(tot=False)
+    #flights[0].plotEmissionData(tot=False)
     #print(flights[0].time_cum, flights[0].time_diffs)
 
  
