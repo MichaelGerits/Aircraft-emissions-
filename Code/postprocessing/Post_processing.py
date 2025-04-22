@@ -186,42 +186,48 @@ def plot_emissions(df, mode, label):
         else:
             print("Column 'Dep' not found — cannot calculate emissions by origin airport.")
 
-        # --- World Map: Top 15 Departure Airports by CO2 ---
-        try:
-            top_airports_coords = df.groupby(['Dep', 'Dep(start-coordinates)'])['CO2'].sum().reset_index()
-            top_airports_coords = top_airports_coords.sort_values(by='CO2', ascending=False).head(15)
+        def plot_top_airport_map(df, label):
+    # Group and sort emissions by departure airport
 
-            lons, lats, sizes, labels = [], [], [], []
-            for _, row in top_airports_coords.iterrows():
-                coords = row['Dep(start-coordinates)']
-                if isinstance(coords, list) and len(coords) == 2 and None not in coords:
-                    lon, lat = coords
-                    lons.append(lon)
-                    lats.append(lat)
-                    sizes.append(row['CO2'] * 0.5)  # scale marker size
-                    labels.append(row['Dep'])
+    # Convert coordinates to string so they can be grouped
+            df['DepCoordsStr'] = df['Dep(start-coordinates)'].apply(lambda x: str(x) if isinstance(x, list) else None)
 
-            plt.figure(figsize=(14, 7))
-            m = Basemap(projection='mill', resolution='l', area_thresh=1000.0)
-            m.drawcoastlines()
-            m.drawcountries()
-            m.drawmapboundary(fill_color='lightblue')
-            m.fillcontinents(color='lightgray', lake_color='lightblue')
-            m.drawparallels(range(-90, 91, 30), labels=[1, 0, 0, 0])
-            m.drawmeridians(range(-180, 181, 60), labels=[0, 0, 0, 1])
+    # Group and sort emissions by departure airport and coordinate string
+            coords_group = df.groupby(['Dep', 'DepCoordsStr'])['CO2'].sum().reset_index()
+            coords_group = coords_group.sort_values(by='CO2', ascending=False).head(15)
 
-            x, y = m(lons, lats)
-            m.scatter(x, y, s=sizes, c='red', alpha=0.6, edgecolors='k', zorder=5)
+    # Convert string coordinates back to lists
+            coords_group['Dep(start-coordinates)'] = coords_group['DepCoordsStr'].apply(ast.literal_eval)
 
-            for i, label in enumerate(labels):
-                plt.text(x[i], y[i], label, fontsize=8, ha='left', va='center', color='black')
+    # Filter valid coordinates
+            coords_group = coords_group[coords_group['Dep(start-coordinates)'].apply(
+                lambda x: isinstance(x, list) and len(x) == 2 and None not in x)]
 
-            plt.title(f"Top 15 Departure Airports by CO₂ Emissions in {label}")
-            plt.tight_layout()
-            plt.show()
-        
-        except ImportError:
-            print("Basemap not installed. Skipping world map visualization.")
+    # Extract lat/lon
+            coords_group['lon'] = coords_group['Dep(start-coordinates)'].apply(lambda x: x[0])
+            coords_group['lat'] = coords_group['Dep(start-coordinates)'].apply(lambda x: x[1])
+
+    # Plot
+            fig = px.scatter_geo(
+                coords_group,
+                lon='lon',
+                lat='lat',
+                text='Dep',
+                size='CO2',
+                color='CO2',
+                projection='natural earth',
+                title=f"Top 15 Departure Airports by CO₂ Emissions in {label}",
+                hover_name='Dep',
+                size_max=40
+            )
+
+            fig.update_traces(marker=dict(line=dict(width=0.5, color='black')))
+            fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
+            fig.show()
+
+        plot_top_airport_map(df, label)
+
+
 
 
     elif mode == 2:
