@@ -11,7 +11,7 @@ LattitudeAirportlist=[]
 ID=[]
 
 Aiport_Classifier = {}
-for i in range(28256):
+for i in range(len(LongitudeAirport)):
     key = LongitudeAirport[i]
     key1=LatAirport[i]
     value = Name_of_Airport[i]

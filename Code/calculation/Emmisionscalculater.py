@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 #custom modules
 from preprocessing.preProcess import extract_ECTRLIDSeq
-from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
+from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft 
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
 from preprocessing.AircraftIDandType import aircraft_dict_mass
@@ -373,7 +373,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202012')
 
 
 
