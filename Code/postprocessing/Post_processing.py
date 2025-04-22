@@ -109,18 +109,82 @@ def group_by_aircraft_and_route(df):
 
 def plot_emissions(df, mode, label):
     if mode == 1:
+        # --- Monthly Emissions Scatter Plot ---
         df['Month'] = df['Start-Date'].dt.month
-        monthly = df.groupby('Month')[['CO2']].sum()
-        monthly = monthly.reindex(range(1, 13))  # Ensure all 12 months in order
-
+        monthly = df.groupby('Month')[['CO2', 'NOX']].sum().reindex(range(1, 13))
         monthly.index = monthly.index.map(lambda x: pd.to_datetime(str(x), format='%m').strftime('%b'))
 
-        monthly.plot(kind='bar', legend=False, color='skyblue')
-        plt.title(f"Monthly CO2 Emissions in {label}")
-        plt.ylabel("CO2 (kg)")
+        plt.figure(figsize=(10, 5))
+        plt.plot(monthly.index, monthly['CO2'], marker='o', label='CO2 (kg)', color='skyblue')
+        plt.plot(monthly.index, monthly['NOX'], marker='o', label='NOX (kg)', color='orange')
+        plt.title(f"Monthly Emissions in {label}")
+        plt.ylabel("Emissions (kg)")
         plt.xlabel("Month")
+        plt.legend()
+        plt.grid(True)
         plt.tight_layout()
         plt.show()
+
+        # --- Top & Bottom 10 CO2 and NOX Routes ---
+        df['Route'] = df['Dep'] + " → " + df['Arr']
+        route_emissions = df.groupby('Route')[['CO2', 'NOX']].sum()
+        route_emissions_nonzero = route_emissions[(route_emissions['CO2'] > 0) & (route_emissions['NOX'] > 0)]
+
+        def plot_bar(data, title, color):
+            data.plot(kind='bar', color=color, figsize=(10, 5))
+            plt.title(title)
+            plt.ylabel("Emissions (kg)")
+            plt.xlabel("Route")
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            plt.show()
+
+        # Top 10 CO2
+        plot_bar(route_emissions.sort_values(by='CO2', ascending=False).head(10),
+                 f"Top 10 Routes by CO2 in {label}", 'red')
+
+        # Bottom 10 CO2 (non-zero)
+        plot_bar(route_emissions_nonzero.sort_values(by='CO2').head(10),
+                 f"Bottom 10 Routes by CO2 (Non-zero) in {label}", 'green')
+
+        # Top 10 NOX
+        plot_bar(route_emissions.sort_values(by='NOX', ascending=False).head(10),
+                 f"Top 10 Routes by NOX in {label}", 'darkorange')
+
+        # Bottom 10 NOX (non-zero)
+        plot_bar(route_emissions_nonzero.sort_values(by='NOX').head(10),
+                 f"Bottom 10 Routes by NOX (Non-zero) in {label}", 'blue')
+
+        # --- Emissions by Flight Type using 'Haul' column ---
+        if 'Haul' in df.columns:
+            haul_emissions = df.groupby('Haul')[['CO2', 'NOX']].sum()
+            print("\n=== Total Emissions by Flight Type ===")
+            print(haul_emissions)
+
+            haul_emissions.plot(kind='bar', color=['skyblue', 'orange'], figsize=(8, 5))
+            plt.title(f"Total Emissions by Flight Type in {label}")
+            plt.ylabel("Emissions (kg)")
+            plt.xlabel("Flight Type")
+            plt.xticks(rotation=0)
+            plt.tight_layout()
+            plt.show()
+        else:
+            print("Column 'Haul' not found — skipping flight type analysis.")
+
+        # --- Total Emissions by Airport of Origin ---
+        if 'Dep' in df.columns:
+            airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()
+            top_airports = airport_emissions.sort_values(by='CO2', ascending=False).head(15)
+
+            top_airports.plot(kind='barh', figsize=(10, 6), color=['skyblue', 'orange'])
+            plt.title(f"Top 15 Departure Airports by Emissions in {label}")
+            plt.xlabel("Emissions (kg)")
+            plt.ylabel("Airport of Origin")
+            plt.gca().invert_yaxis()  # Highest at top
+            plt.tight_layout()
+            plt.show()
+        else:
+            print("Column 'Dep' not found — cannot calculate emissions by origin airport.")
 
     elif mode == 2:
         df['Route'] = df['Dep'] + " → " + df['Arr']
