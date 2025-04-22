@@ -3,6 +3,7 @@ import glob
 import os
 import ast
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 def get_valid_year():
     while True:
@@ -109,6 +110,9 @@ def group_by_aircraft_and_route(df):
 
 def plot_emissions(df, mode, label):
     if mode == 1:
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.basemap import Basemap
+
         # --- Monthly Emissions Scatter Plot ---
         df['Month'] = df['Start-Date'].dt.month
         monthly = df.groupby('Month')[['CO2', 'NOX']].sum().reindex(range(1, 13))
@@ -139,19 +143,15 @@ def plot_emissions(df, mode, label):
             plt.tight_layout()
             plt.show()
 
-        # Top 10 CO2
         plot_bar(route_emissions.sort_values(by='CO2', ascending=False).head(10),
                  f"Top 10 Routes by CO2 in {label}", 'red')
 
-        # Bottom 10 CO2 (non-zero)
         plot_bar(route_emissions_nonzero.sort_values(by='CO2').head(10),
                  f"Bottom 10 Routes by CO2 (Non-zero) in {label}", 'green')
 
-        # Top 10 NOX
         plot_bar(route_emissions.sort_values(by='NOX', ascending=False).head(10),
                  f"Top 10 Routes by NOX in {label}", 'darkorange')
 
-        # Bottom 10 NOX (non-zero)
         plot_bar(route_emissions_nonzero.sort_values(by='NOX').head(10),
                  f"Bottom 10 Routes by NOX (Non-zero) in {label}", 'blue')
 
@@ -171,7 +171,7 @@ def plot_emissions(df, mode, label):
         else:
             print("Column 'Haul' not found — skipping flight type analysis.")
 
-        # --- Total Emissions by Airport of Origin ---
+        # --- Emissions by Departure Airport ---
         if 'Dep' in df.columns:
             airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()
             top_airports = airport_emissions.sort_values(by='CO2', ascending=False).head(15)
@@ -180,11 +180,49 @@ def plot_emissions(df, mode, label):
             plt.title(f"Top 15 Departure Airports by Emissions in {label}")
             plt.xlabel("Emissions (kg)")
             plt.ylabel("Airport of Origin")
-            plt.gca().invert_yaxis()  # Highest at top
+            plt.gca().invert_yaxis()
             plt.tight_layout()
             plt.show()
         else:
             print("Column 'Dep' not found — cannot calculate emissions by origin airport.")
+
+        # --- World Map: Top 15 Departure Airports by CO2 ---
+        try:
+            top_airports_coords = df.groupby(['Dep', 'Dep(start-coordinates)'])['CO2'].sum().reset_index()
+            top_airports_coords = top_airports_coords.sort_values(by='CO2', ascending=False).head(15)
+
+            lons, lats, sizes, labels = [], [], [], []
+            for _, row in top_airports_coords.iterrows():
+                coords = row['Dep(start-coordinates)']
+                if isinstance(coords, list) and len(coords) == 2 and None not in coords:
+                    lon, lat = coords
+                    lons.append(lon)
+                    lats.append(lat)
+                    sizes.append(row['CO2'] * 0.5)  # scale marker size
+                    labels.append(row['Dep'])
+
+            plt.figure(figsize=(14, 7))
+            m = Basemap(projection='mill', resolution='l', area_thresh=1000.0)
+            m.drawcoastlines()
+            m.drawcountries()
+            m.drawmapboundary(fill_color='lightblue')
+            m.fillcontinents(color='lightgray', lake_color='lightblue')
+            m.drawparallels(range(-90, 91, 30), labels=[1, 0, 0, 0])
+            m.drawmeridians(range(-180, 181, 60), labels=[0, 0, 0, 1])
+
+            x, y = m(lons, lats)
+            m.scatter(x, y, s=sizes, c='red', alpha=0.6, edgecolors='k', zorder=5)
+
+            for i, label in enumerate(labels):
+                plt.text(x[i], y[i], label, fontsize=8, ha='left', va='center', color='black')
+
+            plt.title(f"Top 15 Departure Airports by CO₂ Emissions in {label}")
+            plt.tight_layout()
+            plt.show()
+        
+        except ImportError:
+            print("Basemap not installed. Skipping world map visualization.")
+
 
     elif mode == 2:
         df['Route'] = df['Dep'] + " → " + df['Arr']
