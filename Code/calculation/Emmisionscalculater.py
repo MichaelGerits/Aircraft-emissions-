@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 #custom modules
 from preprocessing.preProcess import extract_ECTRLIDSeq
-from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft #TODO: need to adapt to datafile
+from preprocessing.AircraftIDandType import AircraftDictionary_Eurocontrol_and_Aircraft 
 from preprocessing.AirportClassifier import Aiport_Classifier
 from preprocessing.AircraftIDandType import aircraft_dict 
 from preprocessing.AircraftIDandType import aircraft_dict_mass
@@ -21,9 +21,6 @@ from preprocessing.AircraftIDandType import aircraft_dict_mass
 
 #############################################################################################################################################################
 #Make a class for a flight
-
-long_limits = [0,0]
-lar_limits = [0,0]
 
 class Flight:
     def __init__(self, EURCTRLID, Data):
@@ -44,7 +41,7 @@ class Flight:
         self.flightData = Data[self.ID].drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
         # Compute initial parameters
-        self.airports = self.Findairports(init=True)
+        self.airports = self.Findairports(init=False)
         self.time_diffs = self.calcTimeDiffs()
         self.time_cum = np.cumsum(self.time_diffs)
         self.DistHor = self.calcDistHorizontal()
@@ -305,7 +302,9 @@ class Flight:
             #imports the airports using the coordinates from depature and arrival
             lat_deg=np.array(self.flightData['Latitude'])
             lon_deg=np.array(self.flightData['Longitude'])
-            return [Aiport_Classifier[(np.round(lon_deg[0],1),np.round(lat_deg[0],1))],Aiport_Classifier[(np.round(lon_deg[-1],1),np.round(lat_deg[-1],1))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            if init==False:
+                print("The aircraft depatured from",Aiport_Classifier[(lat_deg[0],lon_deg[0])], "and arrived at",Aiport_Classifier[(lat_deg[-1],lon_deg[-1])]) 
+            return [Aiport_Classifier[np.ceil(lat_deg[0]*1e1),np.floor(lon_deg[0]*1e1)],Aiport_Classifier[np.ceil(lat_deg[-1]*1e1),np.floor(lon_deg[-1]*1e1)],[float(lat_deg[0]),float(lon_deg[0])],[float(lat_deg[-1]),float(lon_deg[-1])]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             fisk=1
@@ -431,7 +430,8 @@ if __name__ == "__main__":
 
 
     flights = []
-    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
+    #for ID in tqdm(Data["keys"][:6000], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"][:100], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -443,9 +443,9 @@ if __name__ == "__main__":
     print("error")
 
     #--------------------------------------------------------------------------------------------
-    #print(flights)
+   
 
-    flights[0].plotEmissionData(tot=False)
+    #flights[0].plotEmissionData(tot=False)
     #print(flights[0].time_cum, flights[0].time_diffs)
 
  
