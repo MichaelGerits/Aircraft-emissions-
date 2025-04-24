@@ -372,8 +372,8 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202012')
-    outputloc = 'Data\Outputdata\cuckery3.csv'
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202009')
+    outputloc = 'Data\Outputdata\cuckery2.csv'
 
 
     fil=True #decide if you want to go through the filtering process or not
