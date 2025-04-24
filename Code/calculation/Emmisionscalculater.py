@@ -41,7 +41,7 @@ class Flight:
         self.flightData = Data[self.ID].drop_duplicates(subset=['Time Over']).reset_index(drop=True)
 
         # Compute initial parameters
-        self.airports = self.Findairports(init=True)
+        self.airports = self.Findairports(init=False)
         self.time_diffs = self.calcTimeDiffs()
         self.time_cum = np.cumsum(self.time_diffs)
         self.DistHor = self.calcDistHorizontal()
@@ -302,9 +302,8 @@ class Flight:
             lat_deg=np.array(self.flightData['Latitude'])
             lon_deg=np.array(self.flightData['Longitude'])
             if init==False:
-                fisk=1
-                #print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return [Aiport_Classifier[np.ceil(lon_deg[0]),np.floor(lat_deg[0])],Aiport_Classifier[(np.ceil(lon_deg[-1]),np.floor(lat_deg[-1]))],[float(lon_deg[0]),float(lat_deg[0])],[float(lon_deg[-1]),float(lat_deg[-1])]]
+                print("The aircraft depatured from",Aiport_Classifier[(lat_deg[0],lon_deg[0])], "and arrived at",Aiport_Classifier[(lat_deg[-1],lon_deg[-1])]) 
+            return [Aiport_Classifier[np.ceil(lat_deg[0]*1e1),np.floor(lon_deg[0]*1e1)],Aiport_Classifier[np.ceil(lat_deg[-1]*1e1),np.floor(lon_deg[-1]*1e1)],[float(lat_deg[0]),float(lon_deg[0])],[float(lat_deg[-1]),float(lon_deg[-1])]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
             return [None, None, None, None]
@@ -312,9 +311,9 @@ class Flight:
             print("fisk")
         
     def Haul(self):
-        if self.DistHor[-1] < 1500:
+        if np.sum(self.DistHor[-1]) < 1500000:
             return("Short-haul flight")
-        elif self.DistHor[-1] >= 3000:
+        elif np.sum(self.DistHor[-1]) >= 3000000:
             return("Long-haul flight")
         else:
             return("Medium-haul flight")
@@ -325,7 +324,7 @@ def create_flight(EURCTRLID, Data):
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
-        with open('Data\Outputdata\dest.csv', 'a', newline='',encoding="utf-8") as file:
+        with open('Data\Outputdata\cuckery.csv', 'a', newline='',encoding="utf-8") as file:
             writer = csv.writer(file)
             row_list=[flight.ID,flight.type,flight.Findairports(init=True)[0],flight.Findairports(init=True)[1],flight.Findairports(init=True)[2],flight.Findairports(init=True)[3],flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.calcDistHorizontal()),0),flight.Haul(),np.array(flight.flightData['Time Over'])[0],np.array(flight.flightData['Time Over'])[-1]]
             writer.writerow(row_list)
@@ -373,7 +372,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202012')
+    Data = extract_ECTRLIDSeq('Data/PositionData/FPA202003')
 
 
 
@@ -402,7 +401,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
     
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    with open('Data\Outputdata\cuckery.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         row_list = [
             ["EurocontrolID","Plane", "Dep","Arr", "Dep(start-coordinates)", "Arr(end-coordinates)","CO2","NOX","Time","Distance","Haul","Start-Date","End-date"],  
@@ -412,7 +411,8 @@ if __name__ == "__main__":
 
 
     flights = []
-    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
+    #for ID in tqdm(Data["keys"][:6000], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"][:100], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
@@ -423,7 +423,7 @@ if __name__ == "__main__":
     print("--------------------done---------------------")
 
     #--------------------------------------------------------------------------------------------
-    #print(flights)
+   
 
     #flights[0].plotEmissionData(tot=False)
     #print(flights[0].time_cum, flights[0].time_diffs)
