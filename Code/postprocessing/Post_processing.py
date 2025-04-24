@@ -2,7 +2,54 @@ import pandas as pd
 import glob
 import os
 import ast
+import plotly.express as px
 
+def plot_airport_map(df, label, airport_type='Dep'):
+    # Select the relevant coordinates column based on airport type ('Dep' or 'Arr')
+    if airport_type == 'Dep':
+        coords_column = 'Dep(start-coordinates)'
+        title = f"Top 15 Departure Airports by CO₂ Emissions in {label}"
+    elif airport_type == 'Arr':
+        coords_column = 'Arr(end-coordinates)'
+        title = f"Top 15 Arrival Airports by CO₂ Emissions in {label}"
+    else:
+        raise ValueError("airport_type must be either 'Dep' or 'Arr'")
+    
+    # Convert coordinates to string so they can be grouped
+    df[f'{airport_type}CoordsStr'] = df[coords_column].apply(lambda x: str(x) if isinstance(x, list) else None)
+
+    # Group and sort emissions by airport and coordinate string
+    coords_group = df.groupby([airport_type, f'{airport_type}CoordsStr'])['CO2'].sum().reset_index()
+    coords_group = coords_group.sort_values(by='CO2', ascending=False).head(15)
+
+    # Convert string coordinates back to lists
+    coords_group[f'{airport_type}Coords'] = coords_group[f'{airport_type}CoordsStr'].apply(ast.literal_eval)
+
+    # Filter valid coordinates
+    coords_group = coords_group[coords_group[f'{airport_type}Coords'].apply(
+        lambda x: isinstance(x, list) and len(x) == 2 and None not in x)]
+
+    # Extract lat/lon (Corrected inversion)
+    coords_group['lon'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[1])  # longitude
+    coords_group['lat'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[0])  # latitude
+
+    # Plot
+    fig = px.scatter_geo(
+        coords_group,
+        lon='lon',
+        lat='lat',
+        text=airport_type,
+        size='CO2',
+        color='CO2',
+        projection='natural earth',
+        title=title,
+        hover_name=airport_type,
+        size_max=40
+    )
+
+    fig.update_traces(marker=dict(line=dict(width=0.5, color='black')))
+    fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
+    fig.show()
 
 def get_valid_year():
     while True:
@@ -138,7 +185,6 @@ def save_summary_csv(total_co2, total_nox, top_airports, haul_emissions, aircraf
             f.write("\nEmissions by Aircraft Type:\n")
             aircraft_emissions.to_csv(f, lineterminator='\n')  # And here
     print(f"Summary CSV updated: {filename}")
-    
 
 def main():
     df, label = load_csv()
@@ -153,6 +199,10 @@ def main():
 
         summary_csv_filename = f"{label}sum.csv"
         save_summary_csv(total_co2, total_nox, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
+
+        # Plot the top departure and arrival airports on separate maps
+        plot_airport_map(df, label, airport_type='Dep')  # Departure airports map
+        plot_airport_map(df, label, airport_type='Arr')  # Arrival airports map
 
 if __name__ == "__main__":
     main()
