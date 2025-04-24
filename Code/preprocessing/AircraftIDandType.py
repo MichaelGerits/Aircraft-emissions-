@@ -25,6 +25,7 @@ df = pd.read_csv("Data\AircraftData\Flights_202003.csv")
 df1 = pd.read_csv("Data\AircraftData\Flights_202006.csv")
 df2 = pd.read_csv("Data\AircraftData\Flights_202009.csv")
 df3 = pd.read_csv("Data\AircraftData\Flights_202012.csv")
+df4 = pd.read_csv("Data\AircraftData\Flights_202012.csv")
 s1 = pd.Series(["ECTRL ID"], name="X")
 result = pd.concat([df["ECTRL ID"], df["ECTRL ID"]])
 

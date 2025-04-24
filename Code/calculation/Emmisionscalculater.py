@@ -301,34 +301,43 @@ class Flight:
 
     def Findairports(self, init=False):
         try:
+            fisk=0
             #imports the airports using the coordinates from depature and arrival
             lat_deg=np.array(self.flightData['Latitude'])
             lon_deg=np.array(self.flightData['Longitude'])
-            if init==False:
-                fisk=1
-                #print("The aircraft depatured from",Aiport_Classifier[(lon_deg[0],lat_deg[0])], "and arrived at",Aiport_Classifier[(lon_deg[-1],lat_deg[-1])]) 
-            return [Aiport_Classifier[(np.round(lon_deg[0],0),np.round(lat_deg[0],0))],Aiport_Classifier[(np.round(lon_deg[-1],0),np.round(lat_deg[-1],0))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            return [Aiport_Classifier[(np.round(lon_deg[0],1),np.round(lat_deg[0],1))],Aiport_Classifier[(np.round(lon_deg[-1],1),np.round(lat_deg[-1],1))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
+            fisk=1
             return [None, None, None, None]
         except UnicodeEncodeError:
             print("fisk")
+        if fisk==1:
+            try:
+                lat_deg=np.array(self.flightData['Latitude']+0.1)
+                lon_deg=np.array(self.flightData['Longitude']+0.1)
+                return [Aiport_Classifier[(np.round(lon_deg[0],1),np.round(lat_deg[0],1))],Aiport_Classifier[(np.round(lon_deg[-1],1),np.round(lat_deg[-1],1))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            except KeyError:
+                return [None, None, None, None]
+
+  
         
     def Haul(self):
-        if self.DistHor[-1] < 1.500:
+        if sum(self.DistHor) < 1500000:
             return("Short-haul flight")
-        elif self.DistHor[-1] >= 3000:
+        elif sum(self.DistHor) >= 3000000:
             return("Long-haul flight")
         else:
             return("Medium-haul flight")
-        
+    
 def create_flight(EURCTRLID, Data):
     """Helper function for multiprocessing to create a Flight object."""
+    
     try:
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
-        with open('Data\Outputdata\dest.csv', 'a', newline='',encoding="utf-8") as file:
+        with open('Data\Outputdata\DestFPA202003.csv', 'a', newline='',encoding="utf-8") as file:
             writer = csv.writer(file)
             row_list=[flight.ID,flight.type,flight.Findairports(init=True)[0],flight.Findairports(init=True)[1],flight.Findairports(init=True)[2],flight.Findairports(init=True)[3],flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.calcDistHorizontal()),0),flight.Haul(),np.array(flight.flightData['Time Over'])[0],np.array(flight.flightData['Time Over'])[-1]]
             writer.writerow(row_list)
@@ -336,9 +345,16 @@ def create_flight(EURCTRLID, Data):
     except ValueError as e:
         print(e)
         flight = None
+  
     except RuntimeWarning:
         print("issue during computation")
         flight= None
+
+    except IndexError:
+        print("issue with listindexing")
+        flight= None
+   
+
     
         
     return flight
@@ -376,8 +392,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data/PositionData/March')
-
+    Data = extract_ECTRLIDSeq('Data\PositionData\FPA202003')
 
 
     fil=True #decide if you want to go through the filtering process or not
@@ -405,12 +420,13 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
     
-    with open('Data\Outputdata\dest.csv', 'w', newline='') as file:
+    with open('Data\Outputdata\DestFPA202003.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         row_list = [
             ["EurocontrolID","Plane", "Dep","Arr", "Dep(start-coordinates)", "Arr(end-coordinates)","CO2","NOX","Time","Distance","Haul","Start-Date","End-date"],  
         ]
         writer.writerows(row_list)
+    
     
 
 
@@ -424,6 +440,7 @@ if __name__ == "__main__":
     flights = [f for f in flights if f is not None]
 
     print("--------------------done---------------------")
+    print("error")
 
     #--------------------------------------------------------------------------------------------
     #print(flights)
