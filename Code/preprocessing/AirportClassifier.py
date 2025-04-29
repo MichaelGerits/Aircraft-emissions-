@@ -17,8 +17,3 @@ for i in range(len(LongitudeAirport)):
     value = Name_of_Airport[i]
     Aiport_Classifier.update({(key,key1): value})
 
-#print(Aiport_Classifier[(501,85)])
-#50.03333,8.57056 => Frankfurt
-
-#51.5183,7.61224 => dortmund
-

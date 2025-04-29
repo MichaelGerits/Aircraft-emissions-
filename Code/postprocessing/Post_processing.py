@@ -2,8 +2,47 @@ import pandas as pd
 import glob
 import os
 import ast
-import matplotlib.pyplot as plt
 import plotly.express as px
+
+def plot_airport_map(df, label, airport_type='Dep'):
+    if airport_type == 'Dep':
+        coords_column = 'Dep(start-coordinates)'
+        title = f"Top 15 Departure Airports by CO₂ Emissions in {label}"
+    elif airport_type == 'Arr':
+        coords_column = 'Arr(end-coordinates)'
+        title = f"Top 15 Arrival Airports by CO₂ Emissions in {label}"
+    else:
+        raise ValueError("airport_type must be either 'Dep' or 'Arr'")
+
+    df[f'{airport_type}CoordsStr'] = df[coords_column].apply(lambda x: str(x) if isinstance(x, list) else None)
+
+    coords_group = df.groupby([airport_type, f'{airport_type}CoordsStr'])['CO2'].sum().reset_index()
+    coords_group = coords_group.sort_values(by='CO2', ascending=False).head(15)
+
+    coords_group[f'{airport_type}Coords'] = coords_group[f'{airport_type}CoordsStr'].apply(ast.literal_eval)
+
+    coords_group = coords_group[coords_group[f'{airport_type}Coords'].apply(
+        lambda x: isinstance(x, list) and len(x) == 2 and None not in x)]
+
+    coords_group['lon'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[1])
+    coords_group['lat'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[0])
+
+    fig = px.scatter_geo(
+        coords_group,
+        lon='lon',
+        lat='lat',
+        text=airport_type,
+        size='CO2',
+        color='CO2',
+        projection='natural earth',
+        title=title,
+        hover_name=airport_type,
+        size_max=40
+    )
+
+    fig.update_traces(marker=dict(line=dict(width=0.5, color='black')))
+    fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
+    fig.show()
 
 def get_valid_year():
     while True:
@@ -28,28 +67,17 @@ def get_valid_month():
             return month
         print("Error: Month must be 03, 06, 09, or 12.")
 
-def load_csv(mode):
+def load_csv():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     dfs = []
 
-    if mode == 1:
-        year = get_valid_year()
-        if not year:
-            return None, None
-        pattern = os.path.join(script_dir, f"{year}*.csv")
-    elif mode == 2:
-        month = get_valid_month()
-        if not month:
-            return None, None
-        pattern = os.path.join(script_dir, f"*{month}.csv")
-    elif mode == 3:
-        year = get_valid_year()
-        if not year:
-            return None, None
-        month = get_valid_month()
-        if not month:
-            return None, None
-        pattern = os.path.join(script_dir, f"{year}{month}.csv")
+    year = get_valid_year()
+    if not year:
+        return None, None
+    month = get_valid_month()
+    if not month:
+        return None, None
+    pattern = os.path.join(script_dir, f"{year}{month}.csv")
 
     files = sorted(glob.glob(pattern))
     if not files:
@@ -69,7 +97,6 @@ def load_csv(mode):
 
     df = pd.concat(dfs, ignore_index=True)
 
-    # Clean and process the data
     df['Start-Date'] = pd.to_datetime(df['Start-Date'], errors='coerce', dayfirst=True)
     df['End-date'] = pd.to_datetime(df['End-date'], errors='coerce', dayfirst=True)
 
@@ -80,193 +107,111 @@ def load_csv(mode):
 
     df.fillna("Unknown", inplace=True)
 
-    return df, year if mode == 1 else month
+    return df, f"{year}{month}"
 
 def summarize_flights(df):
-    if 'CO2' in df.columns and 'NOX' in df.columns:
+    if {'CO2', 'NOX', 'Distance'}.issubset(df.columns):
         df['CO2'] = pd.to_numeric(df['CO2'], errors='coerce')
         df['NOX'] = pd.to_numeric(df['NOX'], errors='coerce')
+        df['Distance'] = pd.to_numeric(df['Distance'], errors='coerce')
 
         num_flights = len(df)
         total_co2 = df['CO2'].sum()
         total_nox = df['NOX'].sum()
+        total_distance = df['Distance'].sum() / 1000  # meters to kilometers
 
         print("\n=== Summary ===")
         print(f"Number of flights: {num_flights}")
+        print(f"Total distance flown: {total_distance:.2f} km")
         print(f"Total CO2 emissions: {total_co2:.2f} kg")
         print(f"Total NOX emissions: {total_nox:.2f} kg")
+
+        return total_co2, total_nox, total_distance
     else:
-        print("Missing 'CO2' or 'NOX' column in the data.")
+        print("Missing required columns in the data.")
+        return 0, 0, 0
 
 def group_by_aircraft_and_route(df):
-    print("\n=== Emissions by Aircraft Type ===")
-    by_plane = df.groupby('Plane')[['CO2', 'NOX']].sum().sort_values(by='CO2', ascending=False)
-    print(by_plane)
-
-    print("\n=== Emissions by Route (Dep → Arr) ===")
     df['Route'] = df['Dep'] + " → " + df['Arr']
-    by_route = df.groupby('Route')[['CO2', 'NOX']].sum().sort_values(by='CO2', ascending=False)
-    print(by_route.head(10))  # print top 10 routes
+    grouped = df.groupby('Plane').agg({
+        'CO2': 'sum',
+        'NOX': 'sum',
+        'Distance': 'sum',
+        'Time': 'mean'
+    })
+    grouped['Distance (km)'] = grouped['Distance'] / 1000
+    grouped['Avg Flight Time (min)'] = grouped['Time'] / 60
+    return grouped[['CO2', 'NOX', 'Distance (km)', 'Avg Flight Time (min)']].sort_values(by='CO2', ascending=False)
 
-def plot_emissions(df, mode, label):
-    if mode == 1:
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.basemap import Basemap
+def extract_top_departure_airports(df):
+    if 'Dep' in df.columns:
+        airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()
+        top_airports = airport_emissions.sort_values(by='CO2', ascending=False).head(50)
+        return top_airports
+    else:
+        print("Column 'Dep' not found — cannot calculate emissions by origin airport.")
+        return pd.DataFrame()
 
-        # --- Monthly Emissions Scatter Plot ---
-        df['Month'] = df['Start-Date'].dt.month
-        monthly = df.groupby('Month')[['CO2', 'NOX']].sum().reindex(range(1, 13))
-        monthly.index = monthly.index.map(lambda x: pd.to_datetime(str(x), format='%m').strftime('%b'))
+def analyze_haul_emissions(df):
+    if 'Haul' in df.columns:
+        haul_group = df.groupby('Haul').agg({
+            'CO2': 'sum',
+            'NOX': 'sum',
+            'Distance': 'sum'
+        })
+        haul_group['Distance (km)'] = haul_group['Distance'] / 1000
+        return haul_group[['CO2', 'NOX', 'Distance (km)']]
+    else:
+        print("Column 'Haul' not found — skipping flight type analysis.")
+        return pd.DataFrame()
 
-        plt.figure(figsize=(10, 5))
-        plt.plot(monthly.index, monthly['CO2'], marker='o', label='CO2 (kg)', color='skyblue')
-        plt.plot(monthly.index, monthly['NOX'], marker='o', label='NOX (kg)', color='orange')
-        plt.title(f"Monthly Emissions in {label}")
-        plt.ylabel("Emissions (kg)")
-        plt.xlabel("Month")
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
+def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, filename):
+    if os.path.exists(filename):
+        mode = 'a'
+    else:
+        mode = 'w'
 
-        # --- Top & Bottom 10 CO2 and NOX Routes ---
-        df['Route'] = df['Dep'] + " → " + df['Arr']
-        route_emissions = df.groupby('Route')[['CO2', 'NOX']].sum()
-        route_emissions_nonzero = route_emissions[(route_emissions['CO2'] > 0) & (route_emissions['NOX'] > 0)]
-
-        def plot_bar(data, title, color):
-            data.plot(kind='bar', color=color, figsize=(10, 5))
-            plt.title(title)
-            plt.ylabel("Emissions (kg)")
-            plt.xlabel("Route")
-            plt.xticks(rotation=45, ha='right')
-            plt.tight_layout()
-            plt.show()
-
-        plot_bar(route_emissions.sort_values(by='CO2', ascending=False).head(10),
-                 f"Top 10 Routes by CO2 in {label}", 'red')
-
-        plot_bar(route_emissions_nonzero.sort_values(by='CO2').head(10),
-                 f"Bottom 10 Routes by CO2 (Non-zero) in {label}", 'green')
-
-        plot_bar(route_emissions.sort_values(by='NOX', ascending=False).head(10),
-                 f"Top 10 Routes by NOX in {label}", 'darkorange')
-
-        plot_bar(route_emissions_nonzero.sort_values(by='NOX').head(10),
-                 f"Bottom 10 Routes by NOX (Non-zero) in {label}", 'blue')
-
-        # --- Emissions by Flight Type using 'Haul' column ---
-        if 'Haul' in df.columns:
-            haul_emissions = df.groupby('Haul')[['CO2', 'NOX']].sum()
-            print("\n=== Total Emissions by Flight Type ===")
-            print(haul_emissions)
-
-            haul_emissions.plot(kind='bar', color=['skyblue', 'orange'], figsize=(8, 5))
-            plt.title(f"Total Emissions by Flight Type in {label}")
-            plt.ylabel("Emissions (kg)")
-            plt.xlabel("Flight Type")
-            plt.xticks(rotation=0)
-            plt.tight_layout()
-            plt.show()
+    with open(filename, mode) as f:
+        if mode == 'w':
+            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
+            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
+            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
+            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
+            top_airports.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
+            haul_emissions.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Aircraft Type:\n")
+            aircraft_emissions.to_csv(f, lineterminator='\n')
         else:
-            print("Column 'Haul' not found — skipping flight type analysis.")
+            f.write("\n\n=== New Entry ===\n")
+            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
+            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
+            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
+            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
+            top_airports.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
+            haul_emissions.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Aircraft Type:\n")
+            aircraft_emissions.to_csv(f, lineterminator='\n')
 
-        # --- Emissions by Departure Airport ---
-        if 'Dep' in df.columns:
-            airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()
-            top_airports = airport_emissions.sort_values(by='CO2', ascending=False).head(15)
-
-            top_airports.plot(kind='barh', figsize=(10, 6), color=['skyblue', 'orange'])
-            plt.title(f"Top 15 Departure Airports by Emissions in {label}")
-            plt.xlabel("Emissions (kg)")
-            plt.ylabel("Airport of Origin")
-            plt.gca().invert_yaxis()
-            plt.tight_layout()
-            plt.show()
-        else:
-            print("Column 'Dep' not found — cannot calculate emissions by origin airport.")
-
-        def plot_top_airport_map(df, label):
-    # Group and sort emissions by departure airport
-
-    # Convert coordinates to string so they can be grouped
-            df['DepCoordsStr'] = df['Dep(start-coordinates)'].apply(lambda x: str(x) if isinstance(x, list) else None)
-
-    # Group and sort emissions by departure airport and coordinate string
-            coords_group = df.groupby(['Dep', 'DepCoordsStr'])['CO2'].sum().reset_index()
-            coords_group = coords_group.sort_values(by='CO2', ascending=False).head(15)
-
-    # Convert string coordinates back to lists
-            coords_group['Dep(start-coordinates)'] = coords_group['DepCoordsStr'].apply(ast.literal_eval)
-
-    # Filter valid coordinates
-            coords_group = coords_group[coords_group['Dep(start-coordinates)'].apply(
-                lambda x: isinstance(x, list) and len(x) == 2 and None not in x)]
-
-    # Extract lat/lon
-            coords_group['lon'] = coords_group['Dep(start-coordinates)'].apply(lambda x: x[0])
-            coords_group['lat'] = coords_group['Dep(start-coordinates)'].apply(lambda x: x[1])
-
-    # Plot
-            fig = px.scatter_geo(
-                coords_group,
-                lon='lon',
-                lat='lat',
-                text='Dep',
-                size='CO2',
-                color='CO2',
-                projection='natural earth',
-                title=f"Top 15 Departure Airports by CO₂ Emissions in {label}",
-                hover_name='Dep',
-                size_max=40
-            )
-
-            fig.update_traces(marker=dict(line=dict(width=0.5, color='black')))
-            fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
-            fig.show()
-
-        plot_top_airport_map(df, label)
-
-
-
-
-    elif mode == 2:
-        df['Route'] = df['Dep'] + " → " + df['Arr']
-        top_routes = df.groupby('Route')[['CO2']].sum().sort_values(by='CO2', ascending=False).head(10)
-
-        top_routes.plot(kind='bar', legend=False, color='salmon')
-        plt.title(f"Top 10 Routes by CO2 in Month {label}")
-        plt.ylabel("CO2 (kg)")
-        plt.xlabel("Route")
-        plt.xticks(rotation=45, ha='right')
-        plt.tight_layout()
-        plt.show()
+    print(f"Summary CSV updated: {filename}")
 
 def main():
-    print("=== CSV Loading Modes ===")
-    print("1. Load all data for a specific year")
-    print("2. Load all data for a specific month")
-    print("3. Load data for a specific year+month")
-
-    while True:
-        try:
-            mode = int(input("Choose mode (1–3): "))
-            if mode in {1, 2, 3}:
-                break
-            print("Error: Mode must be 1, 2, or 3.")
-        except ValueError:
-            print("Error: Please enter a valid integer.")
-
-    df, label = load_csv(mode)
+    df, label = load_csv()
     if df is not None:
         print("\nLoaded data preview:")
         print(df.head())
 
-        summarize_flights(df)
-        group_by_aircraft_and_route(df)
+        total_co2, total_nox, total_distance = summarize_flights(df)
+        aircraft_emissions = group_by_aircraft_and_route(df)
+        top_airports = extract_top_departure_airports(df)
+        haul_emissions = analyze_haul_emissions(df)
 
-        if mode in {1, 2}:
-            plot_emissions(df, mode, label)
+        summary_csv_filename = f"{label}sum.csv"
+        save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
+
+        plot_airport_map(df, label, airport_type='Dep')
+        plot_airport_map(df, label, airport_type='Arr')
 
 if __name__ == "__main__":
     main()
