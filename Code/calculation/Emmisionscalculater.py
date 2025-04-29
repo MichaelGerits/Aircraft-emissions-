@@ -336,7 +336,7 @@ def create_flight(EURCTRLID, Data):
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
         flight.initialize_emission()  # does the calculation
-        with open('Data\Outputdata\DestFPA202003.csv', 'a', newline='',encoding="utf-8") as file:
+        with open('Data\Outputdata\DestFPA202009.csv', 'a', newline='',encoding="utf-8") as file:
             writer = csv.writer(file)
             row_list=[flight.ID,flight.type,flight.Findairports(init=True)[0],flight.Findairports(init=True)[1],flight.Findairports(init=True)[2],flight.Findairports(init=True)[3],flight.CO2[-1],flight.NOx[-1],flight.time_cum[-1],round(np.sum(flight.calcDistHorizontal()),0),flight.Haul(),np.array(flight.flightData['Time Over'])[0],np.array(flight.flightData['Time Over'])[-1]]
             writer.writerow(row_list)
@@ -391,7 +391,7 @@ def filter_flights_by_coordinates(Data, min_lat, max_lat, min_lon, max_lon):
 if __name__ == "__main__":
 
     #Load the data for al the required flights once
-    Data = extract_ECTRLIDSeq('Data\PositionData\FPA202003')
+    Data = extract_ECTRLIDSeq('Data\PositionData\FPA202009')
 
 
     fil=True #decide if you want to go through the filtering process or not
@@ -419,7 +419,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     print(f"--------------------initializing {len(Data)-2} flights ---------------------")
     
-    with open('Data\Outputdata\DestFPA202003.csv', 'w', newline='') as file:
+    with open('Data\Outputdata\DestFPA202009.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         row_list = [
             ["EurocontrolID","Plane", "Dep","Arr", "Dep(start-coordinates)", "Arr(end-coordinates)","CO2","NOX","Time","Distance","Haul","Start-Date","End-date"],  
@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
     flights = []
     #for ID in tqdm(Data["keys"][:6000], desc="Initializing objects", unit="flight"):
-    for ID in tqdm(Data["keys"][:100], desc="Initializing objects", unit="flight"):
+    for ID in tqdm(Data["keys"], desc="Initializing objects", unit="flight"):
         obj = create_flight(ID, Data)
         flights.append(obj)
     
