@@ -5,7 +5,6 @@ import ast
 import plotly.express as px
 
 def plot_airport_map(df, label, airport_type='Dep'):
-    # Select the relevant coordinates column based on airport type ('Dep' or 'Arr')
     if airport_type == 'Dep':
         coords_column = 'Dep(start-coordinates)'
         title = f"Top 15 Departure Airports by CO₂ Emissions in {label}"
@@ -14,26 +13,20 @@ def plot_airport_map(df, label, airport_type='Dep'):
         title = f"Top 15 Arrival Airports by CO₂ Emissions in {label}"
     else:
         raise ValueError("airport_type must be either 'Dep' or 'Arr'")
-    
-    # Convert coordinates to string so they can be grouped
+
     df[f'{airport_type}CoordsStr'] = df[coords_column].apply(lambda x: str(x) if isinstance(x, list) else None)
 
-    # Group and sort emissions by airport and coordinate string
     coords_group = df.groupby([airport_type, f'{airport_type}CoordsStr'])['CO2'].sum().reset_index()
     coords_group = coords_group.sort_values(by='CO2', ascending=False).head(15)
 
-    # Convert string coordinates back to lists
     coords_group[f'{airport_type}Coords'] = coords_group[f'{airport_type}CoordsStr'].apply(ast.literal_eval)
 
-    # Filter valid coordinates
     coords_group = coords_group[coords_group[f'{airport_type}Coords'].apply(
         lambda x: isinstance(x, list) and len(x) == 2 and None not in x)]
 
-    # Extract lat/lon (Corrected inversion)
-    coords_group['lon'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[1])  # longitude
-    coords_group['lat'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[0])  # latitude
+    coords_group['lon'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[1])
+    coords_group['lat'] = coords_group[f'{airport_type}Coords'].apply(lambda x: x[0])
 
-    # Plot
     fig = px.scatter_geo(
         coords_group,
         lon='lon',
@@ -104,7 +97,6 @@ def load_csv():
 
     df = pd.concat(dfs, ignore_index=True)
 
-    # Clean and process the data
     df['Start-Date'] = pd.to_datetime(df['Start-Date'], errors='coerce', dayfirst=True)
     df['End-date'] = pd.to_datetime(df['End-date'], errors='coerce', dayfirst=True)
 
@@ -118,28 +110,38 @@ def load_csv():
     return df, f"{year}{month}"
 
 def summarize_flights(df):
-    if 'CO2' in df.columns and 'NOX' in df.columns:
+    if {'CO2', 'NOX', 'Distance'}.issubset(df.columns):
         df['CO2'] = pd.to_numeric(df['CO2'], errors='coerce')
         df['NOX'] = pd.to_numeric(df['NOX'], errors='coerce')
+        df['Distance'] = pd.to_numeric(df['Distance'], errors='coerce')
 
         num_flights = len(df)
         total_co2 = df['CO2'].sum()
         total_nox = df['NOX'].sum()
+        total_distance = df['Distance'].sum() / 1000  # meters to kilometers
 
         print("\n=== Summary ===")
         print(f"Number of flights: {num_flights}")
+        print(f"Total distance flown: {total_distance:.2f} km")
         print(f"Total CO2 emissions: {total_co2:.2f} kg")
         print(f"Total NOX emissions: {total_nox:.2f} kg")
 
-        return total_co2, total_nox
+        return total_co2, total_nox, total_distance
     else:
-        print("Missing 'CO2' or 'NOX' column in the data.")
-        return 0, 0
+        print("Missing required columns in the data.")
+        return 0, 0, 0
 
 def group_by_aircraft_and_route(df):
-    by_plane = df.groupby('Plane')[['CO2', 'NOX']].sum().sort_values(by='CO2', ascending=False)
     df['Route'] = df['Dep'] + " → " + df['Arr']
-    return by_plane
+    grouped = df.groupby('Plane').agg({
+        'CO2': 'sum',
+        'NOX': 'sum',
+        'Distance': 'sum',
+        'Time': 'mean'
+    })
+    grouped['Distance (km)'] = grouped['Distance'] / 1000
+    grouped['Avg Flight Time (min)'] = grouped['Time'] / 60
+    return grouped[['CO2', 'NOX', 'Distance (km)', 'Avg Flight Time (min)']].sort_values(by='CO2', ascending=False)
 
 def extract_top_departure_airports(df):
     if 'Dep' in df.columns:
@@ -152,13 +154,18 @@ def extract_top_departure_airports(df):
 
 def analyze_haul_emissions(df):
     if 'Haul' in df.columns:
-        haul_emissions = df.groupby('Haul')[['CO2', 'NOX']].sum()
-        return haul_emissions
+        haul_group = df.groupby('Haul').agg({
+            'CO2': 'sum',
+            'NOX': 'sum',
+            'Distance': 'sum'
+        })
+        haul_group['Distance (km)'] = haul_group['Distance'] / 1000
+        return haul_group[['CO2', 'NOX', 'Distance (km)']]
     else:
         print("Column 'Haul' not found — skipping flight type analysis.")
         return pd.DataFrame()
 
-def save_summary_csv(total_co2, total_nox, top_airports, haul_emissions, aircraft_emissions, filename):
+def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, filename):
     if os.path.exists(filename):
         mode = 'a'
     else:
@@ -166,24 +173,27 @@ def save_summary_csv(total_co2, total_nox, top_airports, haul_emissions, aircraf
 
     with open(filename, mode) as f:
         if mode == 'w':
-            f.write(f"Total CO2,{total_co2:.2f}\n")
-            f.write(f"Total NOX,{total_nox:.2f}\n")
-            f.write("\nTop 15 Departure Airports by CO2 Emissions:\n")
-            top_airports.to_csv(f, lineterminator='\n')  # Changed line_terminator to lineterminator
-            f.write("\nEmissions by Haul Type:\n")
-            haul_emissions.to_csv(f, lineterminator='\n')  # Changed here too
+            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
+            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
+            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
+            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
+            top_airports.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
+            haul_emissions.to_csv(f, lineterminator='\n')
             f.write("\nEmissions by Aircraft Type:\n")
-            aircraft_emissions.to_csv(f, lineterminator='\n')  # And here
+            aircraft_emissions.to_csv(f, lineterminator='\n')
         else:
             f.write("\n\n=== New Entry ===\n")
-            f.write(f"Total CO2,{total_co2:.2f}\n")
-            f.write(f"Total NOX,{total_nox:.2f}\n")
-            f.write("\nTop 15 Departure Airports by CO2 Emissions:\n")
-            top_airports.to_csv(f, lineterminator='\n')  # Changed here
-            f.write("\nEmissions by Haul Type:\n")
-            haul_emissions.to_csv(f, lineterminator='\n')  # And here
+            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
+            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
+            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
+            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
+            top_airports.to_csv(f, lineterminator='\n')
+            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
+            haul_emissions.to_csv(f, lineterminator='\n')
             f.write("\nEmissions by Aircraft Type:\n")
-            aircraft_emissions.to_csv(f, lineterminator='\n')  # And here
+            aircraft_emissions.to_csv(f, lineterminator='\n')
+
     print(f"Summary CSV updated: {filename}")
 
 def main():
@@ -192,17 +202,16 @@ def main():
         print("\nLoaded data preview:")
         print(df.head())
 
-        total_co2, total_nox = summarize_flights(df)
+        total_co2, total_nox, total_distance = summarize_flights(df)
         aircraft_emissions = group_by_aircraft_and_route(df)
         top_airports = extract_top_departure_airports(df)
         haul_emissions = analyze_haul_emissions(df)
 
         summary_csv_filename = f"{label}sum.csv"
-        save_summary_csv(total_co2, total_nox, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
+        save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
 
-        # Plot the top departure and arrival airports on separate maps
-        plot_airport_map(df, label, airport_type='Dep')  # Departure airports map
-        plot_airport_map(df, label, airport_type='Arr')  # Arrival airports map
+        plot_airport_map(df, label, airport_type='Dep')
+        plot_airport_map(df, label, airport_type='Arr')
 
 if __name__ == "__main__":
     main()
