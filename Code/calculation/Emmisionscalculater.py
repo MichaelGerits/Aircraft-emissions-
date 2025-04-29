@@ -298,6 +298,7 @@ class Flight:
 
     def Findairports(self, init=False):
         try:
+            fisk=0
             #imports the airports using the coordinates from depature and arrival
             lat_deg=np.array(self.flightData['Latitude'])
             lon_deg=np.array(self.flightData['Longitude'])
@@ -306,9 +307,19 @@ class Flight:
             return [Aiport_Classifier[np.ceil(lat_deg[0]*1e1),np.floor(lon_deg[0]*1e1)],Aiport_Classifier[np.ceil(lat_deg[-1]*1e1),np.floor(lon_deg[-1]*1e1)],[float(lat_deg[0]),float(lon_deg[0])],[float(lat_deg[-1]),float(lon_deg[-1])]]
             #imports the airports using the coordinates from depature and arrival
         except KeyError:
+            fisk=1
             return [None, None, None, None]
         except UnicodeEncodeError:
             print("fisk")
+        if fisk==1:
+            try:
+                lat_deg=np.array(self.flightData['Latitude']+0.1)
+                lon_deg=np.array(self.flightData['Longitude']+0.1)
+                return [Aiport_Classifier[(np.round(lon_deg[0],1),np.round(lat_deg[0],1))],Aiport_Classifier[(np.round(lon_deg[-1],1),np.round(lat_deg[-1],1))],[lon_deg[0],lat_deg[0]],[lon_deg[-1],lat_deg[-1]]]
+            except KeyError:
+                return [None, None, None, None]
+
+  
         
     def Haul(self):
         if np.sum(self.DistHor) < 1500000:
@@ -320,6 +331,7 @@ class Flight:
         
 def create_flight(EURCTRLID, Data, string):
     """Helper function for multiprocessing to create a Flight object."""
+    
     try:
         #print("initializing ", EURCTRLID)
         flight = Flight(EURCTRLID, Data) #initializes the object
@@ -332,9 +344,16 @@ def create_flight(EURCTRLID, Data, string):
     except ValueError as e:
         print(e)
         flight = None
+  
     except RuntimeWarning:
         print("issue during computation")
         flight= None
+
+    except IndexError:
+        print("issue with listindexing")
+        flight= None
+   
+
     
         
     return flight
@@ -408,6 +427,7 @@ if __name__ == "__main__":
         ]
         writer.writerows(row_list)
     
+    
 
 
     flights = []
@@ -420,6 +440,7 @@ if __name__ == "__main__":
     flights = [f for f in flights if f is not None]
 
     print("--------------------done---------------------")
+    print("error")
 
     #--------------------------------------------------------------------------------------------
    

@@ -1,7 +1,16 @@
+#pip install these packages
+
 pandas
+os
+sys
+csv
 fastmeteo
 matplotlib
 seaborn
 cartopy
+plotly.express
 tqdm
+io
+glob
+ast
 git+https://github.com/junzis/openap.git
