@@ -3,4 +3,6 @@
 
 #wassup
 
+#print("hi")
+
 print("hello world")
