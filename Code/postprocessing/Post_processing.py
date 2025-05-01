@@ -45,6 +45,32 @@ def plot_airport_map(df, label, airport_type='Dep'):
     fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
     fig.show()
 
+def plot_monthly_emissions(monthly_data, label):
+    """Create a time series plot of emissions by month"""
+    if len(monthly_data) <= 1:
+        print("Need multiple months to plot monthly emissions")
+        return
+    
+    fig = px.line(
+        monthly_data,
+        x='Month',
+        y=['CO2', 'NOX'],
+        title=f"Monthly Emissions ({label})",
+        labels={'value': 'Emissions (kg)', 'variable': 'Emission Type'},
+        markers=True
+    )
+    
+    fig.update_layout(
+        yaxis_title="Emissions (kg)",
+        xaxis_title="Month",
+        legend_title="Emission Type"
+    )
+    
+    # Format y-axis to show full numbers
+    fig.update_yaxes(tickformat=".0f")
+    
+    fig.show()
+
 def get_available_dates():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pattern = os.path.join(script_dir, "*.csv")
@@ -80,25 +106,38 @@ def load_csv():
     available_dates, script_dir = get_available_dates()
     if not available_dates:
         print("No CSV files found.")
-        return None, None
+        return None, None, None
 
     selected_dates = prompt_date_selection(available_dates)
     if not selected_dates:
         print("No valid dates selected.")
-        return None, None
+        return None, None, None
 
     dfs = []
+    monthly_data = []
+    
     for date_str in selected_dates:
         file_path = os.path.join(script_dir, f"{date_str}.csv")
         try:
             df = pd.read_csv(file_path)
             dfs.append(df)
             print(f"Loaded: {os.path.basename(file_path)}")
+            
+            # Calculate monthly totals
+            if {'CO2', 'NOX'}.issubset(df.columns):
+                df['CO2'] = pd.to_numeric(df['CO2'], errors='coerce')
+                df['NOX'] = pd.to_numeric(df['NOX'], errors='coerce')
+                monthly_data.append({
+                    'Month': pd.to_datetime(date_str, format='%Y%m').strftime('%Y-%m'),
+                    'CO2': df['CO2'].sum(),
+                    'NOX': df['NOX'].sum()
+                })
+                
         except Exception as e:
             print(f"Error loading {file_path}: {e}")
 
     if not dfs:
-        return None, None
+        return None, None, None
 
     df = pd.concat(dfs, ignore_index=True)
 
@@ -114,7 +153,8 @@ def load_csv():
 
     df.fillna("Unknown", inplace=True)
     label = "_".join(selected_dates)
-    return df, label
+    monthly_df = pd.DataFrame(monthly_data) if monthly_data else None
+    return df, label, monthly_df
 
 def summarize_flights(df):
     if {'CO2', 'NOX', 'Distance'}.issubset(df.columns):
@@ -146,6 +186,7 @@ def group_by_aircraft_and_route(df):
         'Distance': 'sum',
         'Time': 'mean'
     })
+    grouped.index.name = 'Aircraft Type'
     grouped['Distance (km)'] = grouped['Distance'] / 1000
     grouped['Avg Flight Time (min)'] = grouped['Time'] / 60
     return grouped[['CO2', 'NOX', 'Distance (km)', 'Avg Flight Time (min)']].sort_values(by='CO2', ascending=False)
@@ -166,6 +207,7 @@ def analyze_haul_emissions(df):
             'NOX': 'sum',
             'Distance': 'sum'
         })
+        haul_group.index.name = 'Haul Type'
         haul_group['Distance (km)'] = haul_group['Distance'] / 1000
         return haul_group[['CO2', 'NOX', 'Distance (km)']]
     else:
@@ -183,21 +225,21 @@ def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_em
         f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
 
         f.write("=== Top Departure Airports by CO2 Emissions ===\n")
-        top_airports.to_csv(f, index=True)  # Include index (airport names)
+        top_airports.to_csv(f, index=True)
         f.write("\n")
 
         f.write("\n=== Emissions by Haul Type ===\n")
-        haul_emissions.to_csv(f, index=True)  # Include index (haul types)
+        haul_emissions.to_csv(f, index=True)
         f.write("\n")
 
         f.write("\n=== Emissions by Aircraft Type ===\n")
-        aircraft_emissions.to_csv(f, index=True)  # Include index (aircraft types)
+        aircraft_emissions.to_csv(f, index=True)
 
     with open(filename, 'a', encoding='utf-8') as f:
         write_summary(f)
 
 def main():
-    df, label = load_csv()
+    df, label, monthly_data = load_csv()
     if df is not None:
         print("\nLoaded data preview:")
         print(df.head())
@@ -208,10 +250,14 @@ def main():
         haul_emissions = analyze_haul_emissions(df)
 
         summary_csv_filename = f"{label}_summary.csv"
-        save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
+        save_summary_csv(total_co2, total_nox, total_distance, top_airports, 
+                        haul_emissions, aircraft_emissions, summary_csv_filename)
 
         plot_airport_map(df, label, airport_type='Dep')
         plot_airport_map(df, label, airport_type='Arr')
+        
+        if monthly_data is not None and len(monthly_data) > 1:
+            plot_monthly_emissions(monthly_data, label)
 
 if __name__ == "__main__":
     main()
