@@ -2,6 +2,7 @@ import pandas as pd
 import glob
 import os
 import ast
+import re
 import plotly.express as px
 
 def plot_airport_map(df, label, airport_type='Dep'):
@@ -44,53 +45,57 @@ def plot_airport_map(df, label, airport_type='Dep'):
     fig.update_layout(geo=dict(showland=True, landcolor="lightgray"))
     fig.show()
 
-def get_valid_year():
-    while True:
-        try:
-            year = input("Enter year (2015–2021 or 'q' to quit): ")
-            if year.lower() == 'q':
-                return None
-            year = int(year)
-            if 2015 <= year <= 2021:
-                return str(year)
-            print("Error: Year must be between 2015 and 2021.")
-        except ValueError:
-            print("Error: Please enter a valid integer.")
-
-def get_valid_month():
-    valid_months = ['03', '06', '09', '12']
-    while True:
-        month = input("Enter month (03, 06, 09, or 12, or 'q' to quit): ")
-        if month.lower() == 'q':
-            return None
-        if month in valid_months:
-            return month
-        print("Error: Month must be 03, 06, 09, or 12.")
-
-def load_csv():
+def get_available_dates():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    dfs = []
-
-    year = get_valid_year()
-    if not year:
-        return None, None
-    month = get_valid_month()
-    if not month:
-        return None, None
-    pattern = os.path.join(script_dir, f"{year}{month}.csv")
-
+    pattern = os.path.join(script_dir, "*.csv")
     files = sorted(glob.glob(pattern))
-    if not files:
-        print("No matching files found.")
-        return None, None
+
+    date_pattern = re.compile(r'(\d{6})\.csv$')
+    dates = []
 
     for file in files:
+        match = date_pattern.search(os.path.basename(file))
+        if match:
+            dates.append(match.group(1))
+
+    return sorted(dates), script_dir
+
+def prompt_date_selection(available_dates):
+    print("\nAvailable datasets:")
+    for idx, date in enumerate(available_dates):
+        year = date[:4]
+        month = date[4:]
+        print(f"{idx + 1}: {year}-{month}")
+
+    selection = input("\nEnter the numbers of the dates to load (e.g., 1,3,5): ")
+    try:
+        indices = [int(i.strip()) - 1 for i in selection.split(",")]
+        selected = [available_dates[i] for i in indices if 0 <= i < len(available_dates)]
+        return selected
+    except Exception as e:
+        print(f"Invalid selection: {e}")
+        return []
+
+def load_csv():
+    available_dates, script_dir = get_available_dates()
+    if not available_dates:
+        print("No CSV files found.")
+        return None, None
+
+    selected_dates = prompt_date_selection(available_dates)
+    if not selected_dates:
+        print("No valid dates selected.")
+        return None, None
+
+    dfs = []
+    for date_str in selected_dates:
+        file_path = os.path.join(script_dir, f"{date_str}.csv")
         try:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file_path)
             dfs.append(df)
-            print(f"Loaded: {os.path.basename(file)}")
+            print(f"Loaded: {os.path.basename(file_path)}")
         except Exception as e:
-            print(f"Error loading {file}: {e}")
+            print(f"Error loading {file_path}: {e}")
 
     if not dfs:
         return None, None
@@ -101,13 +106,15 @@ def load_csv():
     df['End-date'] = pd.to_datetime(df['End-date'], errors='coerce', dayfirst=True)
 
     if 'Dep(start-coordinates)' in df.columns:
-        df['Dep(start-coordinates)'] = df['Dep(start-coordinates)'].apply(lambda x: ast.literal_eval(x) if pd.notna(x) else [None, None])
+        df['Dep(start-coordinates)'] = df['Dep(start-coordinates)'].apply(
+            lambda x: ast.literal_eval(x) if pd.notna(x) else [None, None])
     if 'Arr(end-coordinates)' in df.columns:
-        df['Arr(end-coordinates)'] = df['Arr(end-coordinates)'].apply(lambda x: ast.literal_eval(x) if pd.notna(x) else [None, None])
+        df['Arr(end-coordinates)'] = df['Arr(end-coordinates)'].apply(
+            lambda x: ast.literal_eval(x) if pd.notna(x) else [None, None])
 
     df.fillna("Unknown", inplace=True)
-
-    return df, f"{year}{month}"
+    label = "_".join(selected_dates)
+    return df, label
 
 def summarize_flights(df):
     if {'CO2', 'NOX', 'Distance'}.issubset(df.columns):
@@ -166,35 +173,25 @@ def analyze_haul_emissions(df):
         return pd.DataFrame()
 
 def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, filename):
-    if os.path.exists(filename):
-        mode = 'a'
-    else:
-        mode = 'w'
+    with open(filename, 'w', encoding='utf-8') as f:
+        pass  # Clear file
 
-    with open(filename, mode) as f:
-        if mode == 'w':
-            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
-            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
-            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
-            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
-            top_airports.to_csv(f, lineterminator='\n')
-            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
-            haul_emissions.to_csv(f, lineterminator='\n')
-            f.write("\nEmissions by Aircraft Type:\n")
-            aircraft_emissions.to_csv(f, lineterminator='\n')
-        else:
-            f.write("\n\n=== New Entry ===\n")
-            f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
-            f.write(f"Total NOX (kg),{total_nox:.2f}\n")
-            f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
-            f.write("Top 15 Departure Airports by CO2 Emissions:\n")
-            top_airports.to_csv(f, lineterminator='\n')
-            f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
-            haul_emissions.to_csv(f, lineterminator='\n')
-            f.write("\nEmissions by Aircraft Type:\n")
-            aircraft_emissions.to_csv(f, lineterminator='\n')
+    def write_summary(f):
+        f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
+        f.write(f"Total NOX (kg),{total_nox:.2f}\n")
+        f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
 
-    print(f"Summary CSV updated: {filename}")
+        f.write("Top 15 Departure Airports by CO2 Emissions:\n")
+        top_airports.to_csv(f, index=False, lineterminator='\n')
+
+        f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
+        haul_emissions.to_csv(f, index=False, lineterminator='\n')
+
+        f.write("\nEmissions by Aircraft Type:\n")
+        aircraft_emissions.to_csv(f, index=False, lineterminator='\n')
+
+    with open(filename, 'a', encoding='utf-8') as f:
+        write_summary(f)
 
 def main():
     df, label = load_csv()
@@ -207,9 +204,9 @@ def main():
         top_airports = extract_top_departure_airports(df)
         haul_emissions = analyze_haul_emissions(df)
 
-        summary_csv_filename = f"{label}sum.csv"
+        summary_csv_filename = f"{label}_summary.csv"
         save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
-        
+
         plot_airport_map(df, label, airport_type='Dep')
         plot_airport_map(df, label, airport_type='Arr')
 
