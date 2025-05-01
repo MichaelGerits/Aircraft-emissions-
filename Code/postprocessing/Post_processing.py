@@ -177,18 +177,21 @@ def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_em
         pass  # Clear file
 
     def write_summary(f):
+        f.write("=== SUMMARY ===\n")
         f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
         f.write(f"Total NOX (kg),{total_nox:.2f}\n")
         f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
 
-        f.write("Top 15 Departure Airports by CO2 Emissions:\n")
-        top_airports.to_csv(f, index=False, lineterminator='\n')
+        f.write("=== Top Departure Airports by CO2 Emissions ===\n")
+        top_airports.to_csv(f, index=True)  # Include index (airport names)
+        f.write("\n")
 
-        f.write("\nEmissions by Haul Type (CO2, NOX, Distance (km)):\n")
-        haul_emissions.to_csv(f, index=False, lineterminator='\n')
+        f.write("\n=== Emissions by Haul Type ===\n")
+        haul_emissions.to_csv(f, index=True)  # Include index (haul types)
+        f.write("\n")
 
-        f.write("\nEmissions by Aircraft Type:\n")
-        aircraft_emissions.to_csv(f, index=False, lineterminator='\n')
+        f.write("\n=== Emissions by Aircraft Type ===\n")
+        aircraft_emissions.to_csv(f, index=True)  # Include index (aircraft types)
 
     with open(filename, 'a', encoding='utf-8') as f:
         write_summary(f)
