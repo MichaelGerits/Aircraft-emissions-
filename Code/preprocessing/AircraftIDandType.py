@@ -19,7 +19,6 @@ from pprint import pprint
 
 
 
-
  #TODO: fix this to adapt to proper file
 #AircraftDictionary_Eurocontrol_and_Aircraft= dict(zip(combined_series_ECTRL,combined_series_Plane))
 #AircraftDictionary_Eurocontrol_and_Aircraft= df.set_index(['ECTRL ID'])[('AC Type')].to_dict()
@@ -37,7 +36,8 @@ def AircraftDIC(year):
     AircraftDictionary_Eurocontrol_and_Aircraft= dict(zip(combined_series_ECTRL,combined_series_Plane))
     return AircraftDictionary_Eurocontrol_and_Aircraft
 
-AircraftDictionary_Eurocontrol_and_Aircraft = AircraftDIC(2018)
+AircraftDictionary_Eurocontrol_and_Aircraft = AircraftDIC(2021)
+#print(AircraftDictionary_Eurocontrol_and_Aircraft[239075328])
 
 aircraft_dict = {
     "A20N": "a20n",

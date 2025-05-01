@@ -209,7 +209,7 @@ def main():
 
         summary_csv_filename = f"{label}sum.csv"
         save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_emissions, aircraft_emissions, summary_csv_filename)
-
+        
         plot_airport_map(df, label, airport_type='Dep')
         plot_airport_map(df, label, airport_type='Arr')
 
