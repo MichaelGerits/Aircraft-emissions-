@@ -19,21 +19,6 @@ from pprint import pprint
 
 
 
-#importing the Aircraft ID (the eurocontrol number and the aircraft type)
-#Setting up the Dictionary between the eurocontrol number and aircraft type.  
-df = pd.read_csv("Data\AircraftData\Flights_202003.csv")
-df1 = pd.read_csv("Data\AircraftData\Flights_202006.csv")
-df2 = pd.read_csv("Data\AircraftData\Flights_202009.csv")
-df3 = pd.read_csv("Data\AircraftData\Flights_202012.csv")
-df4 = pd.read_csv("Data\AircraftData\Flights_202012.csv")
-s1 = pd.Series(["ECTRL ID"], name="X")
-result = pd.concat([df["ECTRL ID"], df["ECTRL ID"]])
-
-combined_series_ECTRL = pd.concat([df["ECTRL ID"], df1["ECTRL ID"], df2["ECTRL ID"], df3["ECTRL ID"]], ignore_index=True)
-combined_series_Plane = pd.concat([df["AC Type"], df1["AC Type"], df2["AC Type"], df3["AC Type"]], ignore_index=True)
-
-
-
 
  #TODO: fix this to adapt to proper file
 #AircraftDictionary_Eurocontrol_and_Aircraft= dict(zip(combined_series_ECTRL,combined_series_Plane))
@@ -52,8 +37,7 @@ def AircraftDIC(year):
     AircraftDictionary_Eurocontrol_and_Aircraft= dict(zip(combined_series_ECTRL,combined_series_Plane))
     return AircraftDictionary_Eurocontrol_and_Aircraft
 
-AircraftDictionary_Eurocontrol_and_Aircraft = AircraftDIC(2020)
-print(AircraftDictionary_Eurocontrol_and_Aircraft[239075328])
+AircraftDictionary_Eurocontrol_and_Aircraft = AircraftDIC(2018)
 
 aircraft_dict = {
     "A20N": "a20n",
