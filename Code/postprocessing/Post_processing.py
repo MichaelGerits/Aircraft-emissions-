@@ -220,9 +220,9 @@ def save_summary_csv(total_co2, total_nox, total_distance, top_airports, haul_em
 
     def write_summary(f):
         f.write("=== SUMMARY ===\n")
-        f.write(f"Total CO2 (kg),{total_co2:.2f}\n")
-        f.write(f"Total NOX (kg),{total_nox:.2f}\n")
-        f.write(f"Total Distance Flown (km),{total_distance:.2f}\n\n")
+        f.write(f"Total CO2 (kg),{total_co2*2:.2f}\n")
+        f.write(f"Total NOX (kg),{total_nox*2:.2f}\n")
+        f.write(f"Total Distance Flown (km),{total_distance*2:.2f}\n\n")
 
         f.write("=== Top Departure Airports by CO2 Emissions ===\n")
         top_airports.to_csv(f, index=True)
