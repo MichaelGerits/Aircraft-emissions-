@@ -163,9 +163,9 @@ def summarize_flights(df):
         df['Distance'] = pd.to_numeric(df['Distance'], errors='coerce')
 
         num_flights = len(df)
-        total_co2 = df['CO2'].sum()
-        total_nox = df['NOX'].sum()
-        total_distance = df['Distance'].sum() / 1000  # meters to kilometers
+        total_co2 = df['CO2'].sum()*0.5
+        total_nox = df['NOX'].sum()*0.5
+        total_distance = df['Distance'].sum() / 1000 *0.5 # meters to kilometers
 
         print("\n=== Summary ===")
         print(f"Number of flights: {num_flights}")
@@ -187,13 +187,13 @@ def group_by_aircraft_and_route(df):
         'Time': 'mean'
     })
     grouped.index.name = 'Aircraft Type'
-    grouped['Distance (km)'] = grouped['Distance'] / 1000
-    grouped['Avg Flight Time (min)'] = grouped['Time'] / 60
+    grouped['Distance (km)'] = grouped['Distance'] / 1000*0.5
+    grouped['Avg Flight Time (min)'] = grouped['Time'] / 60*0.5
     return grouped[['CO2', 'NOX', 'Distance (km)', 'Avg Flight Time (min)']].sort_values(by='CO2', ascending=False)
 
 def extract_top_departure_airports(df):
     if 'Dep' in df.columns:
-        airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()
+        airport_emissions = df.groupby('Dep')[['CO2', 'NOX']].sum()*0.5
         top_airports = airport_emissions.sort_values(by='CO2', ascending=False).head(50)
         return top_airports
     else:
@@ -209,7 +209,7 @@ def analyze_haul_emissions(df):
         })
         haul_group.index.name = 'Haul Type'
         haul_group['Distance (km)'] = haul_group['Distance'] / 1000
-        return haul_group[['CO2', 'NOX', 'Distance (km)']]
+        return haul_group[['CO2', 'NOX', 'Distance (km)']]*0.5
     else:
         print("Column 'Haul' not found — skipping flight type analysis.")
         return pd.DataFrame()
